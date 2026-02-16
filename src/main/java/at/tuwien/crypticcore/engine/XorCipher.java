@@ -1,4 +1,6 @@
-package at.tuwien.crypticcore;
+package at.tuwien.crypticcore.engine;
+
+import at.tuwien.crypticcore.api.CipherAlgorithm;
 
 /**
  * An implementation of {@link CipherAlgorithm} using the bitwise XOR (Exclusive OR) operation.

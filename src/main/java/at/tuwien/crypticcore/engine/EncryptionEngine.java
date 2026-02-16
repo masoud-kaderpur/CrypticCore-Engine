@@ -1,5 +1,6 @@
-package at.tuwien.crypticcore;
+package at.tuwien.crypticcore.engine;
 
+import at.tuwien.crypticcore.api.CipherAlgorithm;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

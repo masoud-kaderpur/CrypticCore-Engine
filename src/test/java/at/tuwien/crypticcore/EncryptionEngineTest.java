@@ -1,5 +1,8 @@
 package at.tuwien.crypticcore;
 
+import at.tuwien.crypticcore.engine.CrypticMode;
+import at.tuwien.crypticcore.engine.EncryptionEngine;
+import at.tuwien.crypticcore.engine.XorCipher;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

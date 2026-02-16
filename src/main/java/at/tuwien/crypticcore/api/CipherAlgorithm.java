@@ -1,4 +1,4 @@
-package at.tuwien.crypticcore;
+package at.tuwien.crypticcore.api;
 
 /**
  * Represents a functional strategy for single-byte cryptographic transformations.
@@ -6,9 +6,6 @@ package at.tuwien.crypticcore;
  * operations where a data unit is transformed using a specific key unit.
  * Implementations must ensure that the transformation is deterministic for
  * any given pair of inputs.</p>
- *
- * @author Masoud Kaderpur
- * @version 1.0
  */
 @FunctionalInterface
 public interface CipherAlgorithm {

@@ -1,4 +1,4 @@
-package at.tuwien.crypticcore;
+package at.tuwien.crypticcore.engine;
 
 /**
  * Defines the operational state of the {@link EncryptionEngine}.
