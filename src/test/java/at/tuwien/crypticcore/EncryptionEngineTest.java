@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -107,6 +108,18 @@ public class EncryptionEngineTest {
     Assertions.assertThrows(IOException.class, () -> {
       engine.processFile(CrypticMode.DECRYPTION, encryptedFile.toString(), decryptedFile.toString(), key, sizeForProgress);
     });
+
+  }
+
+  @Test
+  @DisplayName("Integration: Header Validation V2")
+  void testInvalidHeaderV2() throws IOException {
+    byte[] badFile = new byte[]{'A', 'A'};
+    Files.write(encryptedFile, badFile);
+    long sizeForProgress = Files.size(encryptedFile) - 4;
+    Assertions.assertThrows(IOException.class, () -> {
+      engine.processFile(CrypticMode.DECRYPTION, encryptedFile.toString(), decryptedFile.toString(), key, sizeForProgress);
+    });
   }
 
   /**
@@ -124,4 +137,32 @@ public class EncryptionEngineTest {
       engine.processFile(CrypticMode.DECRYPTION, encryptedFile.toString(), decryptedFile.toString(), key, sizeForProgress);
     });
   }
+
+  @Test
+  @DisplayName("Integration: CryptionMode Validation")
+  void testCryptionMode() throws IOException {
+    byte[] badVersionFile = new byte[]{'C', 'C', 'E', 2, 42};
+    Files.write(encryptedFile, badVersionFile);
+    long sizeForProgress = Files.size(encryptedFile) - 4;
+    Assertions.assertThrows(IllegalArgumentException.class, () -> {
+      engine.processFile(null, encryptedFile.toString(), decryptedFile.toString(), key,
+              sizeForProgress);
+    });
+  }
+
+  @Test
+  @DisplayName("Integration:  File Validation")
+  void testFile() throws IOException {
+    Assertions.assertThrows(FileNotFoundException.class, () -> {
+      engine.processFile(CrypticMode.ENCRYPTION, "/file",
+              decryptedFile.toString(), key, 1
+      );
+    });
+    Assertions.assertThrows(IllegalArgumentException.class, () -> {
+      engine.processFile(CrypticMode.ENCRYPTION, inputFile.toString(),
+              decryptedFile.toString(), key, 0
+      );
+    });
+  }
 }
+

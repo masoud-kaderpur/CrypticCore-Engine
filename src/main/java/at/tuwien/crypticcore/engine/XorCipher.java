@@ -14,10 +14,10 @@ public class XorCipher implements CipherAlgorithm {
    * <p>The operation is performed by masking the signed bytes to {@code 0xFF}
    * to treat them as unsigned values before the XOR operation, ensuring
    * consistent bitwise behavior.</p>
-   * *
-   * * @param data the byte to be transformed
    *
-   * @param key the byte used as the XOR mask
+   * @param data the byte to be transformed
+   * @param key  the byte used as the XOR mask
+   *
    * @return the result of {@code data ^ key} cast back to a byte
    */
   @Override
