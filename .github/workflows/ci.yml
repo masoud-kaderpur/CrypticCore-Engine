@@ -2,7 +2,7 @@ name: Quality Gate
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, build/setup-ci-pipeline ]
   pull_request:
     branches: [ main ]
 
