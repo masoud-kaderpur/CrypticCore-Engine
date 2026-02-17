@@ -37,12 +37,6 @@ class XorCipherTest {
     assertEquals(original, algorithm.transform(encrypted, key), "Double XOR must return original");
   }
 
-  /**
-   * Validates the algorithm against critical byte boundaries.
-   * <p>Tests minimum, maximum, and zero-crossing values to ensure
-   * that Java's signed byte promotion does not corrupt the bitwise logic.</p>
-   * * @param b the edge-case byte provided by the {@link ValueSource}
-   */
   @ParameterizedTest
   @ValueSource(bytes = {0, -1, 127, -128})
   @DisplayName("Edge Cases: Extreme byte values and signs")
@@ -51,12 +45,7 @@ class XorCipherTest {
     byte encrypted = algorithm.transform(b, key);
     assertEquals(b, algorithm.transform(encrypted, key), "Failed at byte: " + b);
   }
-
-  /**
-   * Verifies the Identity Element property of the XOR operation.
-   * <p>Ensures that a null-key (0x00) functions as an identity mapping,
-   * resulting in no transformation of the input data.</p>
-   */
+  
   @Test
   @DisplayName("Identity: XOR with 0 should not change data")
   void testZeroKey() {

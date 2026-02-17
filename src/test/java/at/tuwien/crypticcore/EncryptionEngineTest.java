@@ -16,9 +16,9 @@ import java.nio.file.Path;
 
 /**
  * Integration test suite for the {@link EncryptionEngine}.
- * <p>These tests verify the interaction between the streaming buffer,
- * the file system, and the cryptographic strategy. It specifically validates
- * the custom "CCE" file format and header integrity.</p>
+ * <p>Verifies the interplay between stream-based processing, the file system,
+ * and cryptographic strategies. These tests enforce the "CCE" file format
+ * specification and atomic integrity constraints.</p>
  */
 public class EncryptionEngineTest {
 
@@ -66,12 +66,6 @@ public class EncryptionEngineTest {
     Assertions.assertArrayEquals(originalBytes, decryptedBytes, "Decrypted data must match original");
   }
 
-  /**
-   * Validates the engine's integrity check against data loss.
-   * <p>Ensures that an {@link IOException} is thrown if the processed
-   * byte count does not match the expected file size, preventing
-   * silent truncation errors.</p>
-   */
   @Test
   @DisplayName("Error Resilience: Truncated File")
   void testTruncation() {
@@ -81,11 +75,6 @@ public class EncryptionEngineTest {
     });
   }
 
-  /**
-   * Tests safety constraints regarding file I/O operations.
-   * <p>Ensures the engine fails fast if the input and output paths are identical,
-   * preventing destructive overwrites before processing begins.</p>
-   */
   @Test
   @DisplayName("Error Resilience: Same File Validation")
   void testSameFile() {
@@ -95,10 +84,6 @@ public class EncryptionEngineTest {
     });
   }
 
-  /**
-   * Verifies strict enforcement of the magic byte signature.
-   * <p>Confirmed by attempting to decrypt a file that does not start with "CCE".</p>
-   */
   @Test
   @DisplayName("Integration: Header Validation")
   void testInvalidHeader() throws IOException {
@@ -121,12 +106,7 @@ public class EncryptionEngineTest {
       engine.processFile(CrypticMode.DECRYPTION, encryptedFile.toString(), decryptedFile.toString(), key, sizeForProgress);
     });
   }
-
-  /**
-   * Verifies strict enforcement of format versioning.
-   * <p>Ensures forward compatibility is managed by rejecting version identifiers
-   * that do not match {@code EncryptionEngine.VERSION}.</p>
-   */
+  
   @Test
   @DisplayName("Integration: Version Validation")
   void testInvalidVersion() throws IOException {
@@ -154,7 +134,7 @@ public class EncryptionEngineTest {
   @DisplayName("Integration:  File Validation")
   void testFile() throws IOException {
     Assertions.assertThrows(FileNotFoundException.class, () -> {
-      engine.processFile(CrypticMode.ENCRYPTION, "/file",
+      engine.processFile(CrypticMode.ENCRYPTION, " ",
               decryptedFile.toString(), key, 1
       );
     });

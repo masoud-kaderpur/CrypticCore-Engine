@@ -6,7 +6,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import static org.junit.jupiter.api.Assertions.*;
 
-class CrypticModeTest {
+/**
+ * Unit tests for the {@link CrypticMode} enumeration.
+ * Ensures that string-to-mode conversion is case-insensitive and robust
+ * against invalid inputs.
+ */
+public class CrypticModeTest {
 
   @ParameterizedTest
   @CsvSource({
