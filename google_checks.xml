@@ -132,7 +132,7 @@
             <property name="tokens"
                       value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, STATIC_INIT,
                     INSTANCE_INIT, ANNOTATION_DEF, ENUM_DEF, INTERFACE_DEF, RECORD_DEF,
-                    COMPACT_CTOR_DEF, LITERAL_SWITCH, LITERAL_CASE, LITERAL_FINALLY,
+                    COMPACT_CTOR_DEF, LITERAL_SWITCH, LITERAL_FINALLY,
                     LITERAL_CATCH"/>
         </module>
         <module name="SuppressionXpathSingleFilter">
@@ -410,7 +410,8 @@
             <property name="allowMissingParamTags" value="true"/>
             <property name="allowMissingReturnTag" value="true"/>
             <property name="allowedAnnotations" value="Override, Test"/>
-            <property name="tokens" value="METHOD_DEF, CTOR_DEF, ANNOTATION_FIELD_DEF, COMPACT_CTOR_DEF"/>
+            <property name="tokens"
+                      value="METHOD_DEF, CTOR_DEF, ANNOTATION_FIELD_DEF, COMPACT_CTOR_DEF"/>
         </module>
         <module name="MissingJavadocMethod">
             <property name="scope" value="protected"/>
@@ -445,7 +446,8 @@
             <property name="query" value="//METHOD_DEF[
                                      ./MODIFIERS/ANNOTATION//IDENT[contains(@text, 'Test')]
                                    ]/IDENT"/>
-            <property name="message" value="'[a-z][a-z0-9][a-zA-Z0-9]*(?:_[a-z][a-z0-9][a-zA-Z0-9]*)*'"/>
+            <property name="message"
+                      value="'[a-z][a-z0-9][a-zA-Z0-9]*(?:_[a-z][a-z0-9][a-zA-Z0-9]*)*'"/>
         </module>
         <module name="SingleLineJavadoc"/>
         <module name="TodoComment">
