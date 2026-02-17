@@ -33,16 +33,22 @@ public class Main {
    *
    * @param args Array containing: {@code <mode>}, {@code <input path>},
    *             {@code <output path>}, and {@code <password>}.
+   *
    * @throws IOException if file system operations or stream processing fails.
    */
   public static void main(String[] args) throws IOException {
     if (args.length != 4) {
-      System.out.println("correct syntax: java -jar CrypticCore.jar <mode> <input> <output> <key>");
+      System.out.println("correct syntax: java -jar CrypticCore.jar <mode> <input> <output> "
+              + "<key>");
       System.exit(1);
       return;
     }
 
-    String mode = args[0], input = args[1], output = args[2], password = args[3], tempOutput = output + ".tmp";
+    String mode = args[0];
+    String input = args[1];
+    String output = args[2];
+    String password = args[3];
+    String tempOutput = output + ".tmp";
 
     CipherAlgorithm xor = new XorCipher();
     EncryptionEngine engine = new EncryptionEngine(xor);
@@ -51,10 +57,14 @@ public class Main {
 
     try {
       CrypticMode crypticMode = CrypticMode.fromString(mode);
-      long rawSize = Files.size(Paths.get(input)), sizeForProgress;
+      long rawSize = Files.size(Paths.get(input));
+      long sizeForProgress;
       if (crypticMode == CrypticMode.DECRYPTION) {
-        if (rawSize < 4) throw new IllegalArgumentException("Invalid file: Too small for header.");
-        else sizeForProgress = rawSize - 4;
+        if (rawSize < 4) {
+          throw new IllegalArgumentException("Invalid file: Too small for header.");
+        } else {
+          sizeForProgress = rawSize - 4;
+        }
       } else {
         sizeForProgress = rawSize;
       }
