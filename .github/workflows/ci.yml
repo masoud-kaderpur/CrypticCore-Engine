@@ -22,7 +22,7 @@ jobs:
           cache: maven
 
       - name: Run Quality Checks (Maven)
-        run: mvn -B clean verify
+        run: mvn -B clean verify -Dcheckstyle.skip=false
 
       - name: Upload Coverage Report
         if: always()
