@@ -3,6 +3,7 @@ package at.tuwien.crypticcore;
 import at.tuwien.crypticcore.engine.CrypticMode;
 import at.tuwien.crypticcore.engine.EncryptionEngine;
 import at.tuwien.crypticcore.engine.XorCipher;
+import at.tuwien.crypticcore.io.ProgressObserver;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +27,9 @@ public class EncryptionEngineTest {
   Path tempDir;
 
   private final byte[] key = "secret".getBytes(StandardCharsets.UTF_8);
-  private final EncryptionEngine engine = new EncryptionEngine(new XorCipher());
+  private final ProgressObserver observer = percentage -> {
+  };
+  private final EncryptionEngine engine = new EncryptionEngine(new XorCipher(), observer);
   private Path inputFile;
   private Path encryptedFile;
   private Path decryptedFile;
@@ -106,7 +109,7 @@ public class EncryptionEngineTest {
       engine.processFile(CrypticMode.DECRYPTION, encryptedFile.toString(), decryptedFile.toString(), key, sizeForProgress);
     });
   }
-  
+
   @Test
   @DisplayName("Integration: Version Validation")
   void testInvalidVersion() throws IOException {

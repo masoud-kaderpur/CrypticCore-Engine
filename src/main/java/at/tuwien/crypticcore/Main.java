@@ -5,6 +5,7 @@ import at.tuwien.crypticcore.api.CipherAlgorithm;
 import at.tuwien.crypticcore.engine.CrypticMode;
 import at.tuwien.crypticcore.engine.EncryptionEngine;
 import at.tuwien.crypticcore.engine.XorCipher;
+import at.tuwien.crypticcore.io.ProgressObserver;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -51,7 +52,15 @@ public class Main {
     String tempOutput = output + ".tmp";
 
     CipherAlgorithm xor = new XorCipher();
-    EncryptionEngine engine = new EncryptionEngine(xor);
+    ProgressObserver consoleObserver = percentage -> {
+      System.out.print("\rProgress: [");
+      int bars = percentage / 2;
+      for (int i = 0; i < 50; i++) {
+        System.out.print(i < bars ? "=" : " ");
+      }
+      System.out.print("] " + percentage + "%");
+    };
+    EncryptionEngine engine = new EncryptionEngine(xor, consoleObserver);
 
     byte[] key = password.getBytes(StandardCharsets.UTF_8);
 
@@ -94,6 +103,7 @@ public class Main {
 
     } catch (Exception e) {
       Files.deleteIfExists(Paths.get(tempOutput));
+      System.out.println();
       System.out.println("Error:" + e.getMessage());
     } finally {
       Arrays.fill(key, (byte) 0);
