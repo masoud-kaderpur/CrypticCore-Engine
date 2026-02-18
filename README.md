@@ -20,6 +20,8 @@ the transformation is
 self-inverse, allowing for identical encryption and decryption logic.
 
 The operation is defined as:
+
+
 $$P \oplus K = C$$
 $$C \oplus K = P$$
 
@@ -27,8 +29,9 @@ $$C \oplus K = P$$
 
 To handle data streams where the length of the plaintext exceeds the key length, a cyclic key
 schedule is implemented:
+
+
 $$i_{key} = i_{file} \pmod{L_{key}}$$
----
 
 ## 2. Implementation Details
 
@@ -37,7 +40,9 @@ $$i_{key} = i_{file} \pmod{L_{key}}$$
 To prevent unintended sign extension during the implicit promotion from `byte` to 32-bit `int`, a
 bitmask of $0xFF$ is
 applied to maintain 8-bit integrity:
-$$Result = (P \ \& \ 0xFF) \oplus (K \ \& \ 0xFF)$$
+
+$$Result = (P \land 0xFF) \oplus (K \land 0xFF)$$
+
 
 ### 2.2 Memory Efficiency & Performance
 
