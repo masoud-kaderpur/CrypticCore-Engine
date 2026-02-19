@@ -21,7 +21,6 @@ self-inverse, allowing for identical encryption and decryption logic.
 
 The operation is defined as:
 
-
 $$P \oplus K = C$$
 $$C \oplus K = P$$
 
@@ -29,7 +28,6 @@ $$C \oplus K = P$$
 
 To handle data streams where the length of the plaintext exceeds the key length, a cyclic key
 schedule is implemented:
-
 
 $$i_{key} = i_{file} \pmod{L_{key}}$$
 
@@ -43,7 +41,6 @@ applied to maintain 8-bit integrity:
 
 $$Result = (P \land 0xFF) \oplus (K \land 0xFF)$$
 
-
 ### 2.2 Memory Efficiency & Performance
 
 * **O(1) Space Complexity**: Processes data in discrete **8 KB buffers**, allowing files of
@@ -52,7 +49,7 @@ $$Result = (P \land 0xFF) \oplus (K \land 0xFF)$$
 * **Throughput**: Optimized for high-speed I/O, achieving over **400 MB/s** on standard hardware.
 * **Real-time Telemetry**: Integrated progress bar and performance statistics (MB/s, latency).
 
-### 2.3 Robustness & Safety (Bombenfest)
+### 2.3 Robustness & Safety
 
 * **Atomic Writes**: Utilizes a `.tmp` file staging strategy. The final output is only created via
   an atomic `move`
@@ -63,6 +60,22 @@ $$Result = (P \land 0xFF) \oplus (K \land 0xFF)$$
 * **Header Validation**: Strict magic number and version checking prevents the processing of
   incompatible or corrupted
   files.
+
+### 2.4 SOLID Architecture & Decoupling
+
+The engine is built on SOLID principles to ensure extensibility and testability:
+
+* **Single Responsibility (SRP):** I/O handling, header validation, and cryptographic logic are
+  strictly
+  separated into specialized components (`HeaderHandler`, `FileValidator`, `EncryptionEngine`).
+* **Dependency Inversion (DIP):** The engine does not depend on a specific UI. It communicates
+  progress
+  through a `ProgressObserver` interface, allowing for seamless integration into CLI, Web, or Cloud
+  environments.
+* **Interface Segregation:** Cryptographic strategies are injected via the `CipherAlgorithm`
+  interface,
+  making the engine open for future algorithms (e.g., AES) without modifying the core streaming
+  logic.
 
 ---
 
@@ -94,7 +107,7 @@ java -jar CrypticCore.jar <mode> <input> <output> <key>
 
 The project follows a rigorous testing strategy to ensure data integrity and system stability:
 
-### 5.1 Automated Quality Gate (CI/CD)
+### 5.1 Automated Quality Gate (CI/CD) & Observability
 
 The project utilizes **GitHub Actions** for continuous integration. Every push and pull request is
 automatically validated against:
@@ -103,6 +116,9 @@ automatically validated against:
 * **Checkstyle (Google Java Style):** Strict enforcement of
   the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html).
 * **Test Coverage (JaCoCo):** A quality gate is set to ensure a minimum of **85% code coverage**.
+* **Industrial Logging (SLF4J/Logback):** Replaced all standard output with a professional logging
+  facade. This ensures high observability in production environments and allows for easy
+  migration to structured JSON logging for cloud-native monitoring.
 
 ### 5.2 Testing Strategy
 
@@ -120,8 +136,9 @@ automatically validated against:
 The engine is structured into specialized packages to ensure high maintainability and separation of
 concerns:
 
-* **`at.tuwien.crypticcore.api`**: Contains the command-line interface and the main entry point.
-* **`at.tuwien.crypticcore.engine`**: The heart of the project, containing the encryption logic and
-  the streaming engine.
-* **`at.tuwien.crypticcore.io`**: Dedicated handlers for atomic file operations and progress
-  monitoring.
+* **`at.tuwien.crypticcore.api`**: Functional interfaces and core contracts for algorithm
+  strategies.
+* **`at.tuwien.crypticcore.engine`**: The orchestration layer. Stateless execution of streaming
+  cryptography.
+* **`at.tuwien.crypticcore.io`**: Infrastructure layer handling format-specific headers (
+  `HeaderHandler`), fail-fast validation (`FileValidator`), and the `ProgressObserver` pattern.

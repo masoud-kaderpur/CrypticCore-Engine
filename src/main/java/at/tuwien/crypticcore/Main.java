@@ -12,6 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Command-line entry point for the CrypticCore encryption utility.
@@ -20,6 +22,8 @@ import java.util.Arrays;
  * via temporary staging files.</p>
  */
 public class Main {
+  private static final Logger logger = LoggerFactory.getLogger(at.tuwien.crypticcore.Main.class);
+
   /**
    * Executes the cryptographic process based on command-line arguments.
    * <p>The workflow follows these stages:
@@ -51,7 +55,7 @@ public class Main {
     String password = args[3];
     String tempOutput = output + ".tmp";
 
-    CipherAlgorithm xor = new XorCipher();
+
     ProgressObserver consoleObserver = percentage -> {
       System.out.print("\rProgress: [");
       int bars = percentage / 2;
@@ -60,14 +64,19 @@ public class Main {
       }
       System.out.print("] " + percentage + "%");
     };
+
+    CipherAlgorithm xor = new XorCipher();
     EncryptionEngine engine = new EncryptionEngine(xor, consoleObserver);
 
     byte[] key = password.getBytes(StandardCharsets.UTF_8);
 
     try {
+      logger.info("Initializing encryption engine for mode: {}", mode);
+
       CrypticMode crypticMode = CrypticMode.fromString(mode);
       long rawSize = Files.size(Paths.get(input));
       long sizeForProgress;
+
       if (crypticMode == CrypticMode.DECRYPTION) {
         if (rawSize < 4) {
           throw new IllegalArgumentException("Invalid file: Too small for header.");
@@ -90,21 +99,16 @@ public class Main {
       double throughput = megabytes / seconds;
       double durationMs = durationNs / 1_000_000.0;
 
-
-      System.out.println("\n----- Performance Statistics -----");
-      System.out.println();
-      System.out.printf("  Action:      %s%n", crypticMode);
-      System.out.printf("  File Size:   %.2f MB%n", megabytes);
-      System.out.printf("  Time taken:  %.2f ms%n", durationMs);
-      System.out.printf("  Throughput:  %.2f MB/s%n", throughput);
-      System.out.println();
-      System.out.println("------------------------------------");
-
+      logger.info("Operation completed successfully.");
+      logger.info("----- Performance Statistics -----");
+      logger.info("Action:      {}", crypticMode);
+      logger.info("File Size:   {} MB", String.format("%.2f", megabytes));
+      logger.info("Time taken:  {} ms", String.format("%.2f", durationMs));
+      logger.info("Throughput:  {} MB/s", String.format("%.2f", throughput));
 
     } catch (Exception e) {
       Files.deleteIfExists(Paths.get(tempOutput));
-      System.out.println();
-      System.out.println("Error:" + e.getMessage());
+      logger.error("Critical error during processing: {}", e.getMessage());
     } finally {
       Arrays.fill(key, (byte) 0);
     }
