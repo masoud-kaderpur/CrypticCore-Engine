@@ -3,11 +3,11 @@
 ![Build Status](https://github.com/masoudkaderpur/CrypticCore-Engine/actions/workflows/ci.yml/badge.svg)
 ![Java Version](https://img.shields.io/badge/Java-21-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED)
 
 CrypticCore is a high-performance Java-based encryption engine designed for memory-efficient file
-transformation. It
-implements a decoupled architecture that separates the cryptographic logic from the data streaming
-process.
+transformation. It implements a decoupled architecture that separates the cryptographic logic
+from the data streaming process.
 
 ---
 
@@ -16,8 +16,7 @@ process.
 ### 1.1 The Transformation (XOR Logic)
 
 The engine utilizes the bitwise **Exclusive OR (XOR)** operation. Given that XOR is an involution,
-the transformation is
-self-inverse, allowing for identical encryption and decryption logic.
+the transformation is self-inverse, allowing for identical encryption and decryption logic.
 
 The operation is defined as:
 
@@ -77,9 +76,19 @@ The engine is built on SOLID principles to ensure extensibility and testability:
   making the engine open for future algorithms (e.g., AES) without modifying the core streaming
   logic.
 
+## 3. Cloud-Native & Containerization
+
+The engine is fully containerized to ensure environment parity and security.
+
+* **Multi-Stage Docker Build:** Uses a builder stage (Maven) and a hardened runtime stage (JRE
+  Alpine) to minimize image size (~160MB) and attack surface.
+* **Security Hardening:** The container execution is restricted to a **Non-Root User**.
+* **Orchestration:** Includes a `docker-compose.yml` for seamless integration into microservice
+  environments.
+
 ---
 
-## 3. File Format Specification
+## 4. File Format Specification
 
 Every encrypted file starts with a 4-byte metadata header.
 
@@ -90,10 +99,18 @@ Every encrypted file starts with a 4-byte metadata header.
 
 ---
 
-## 4. Usage
+## 5. Usage
+
+### 5.1 Native Execution
 
 ```bash
 java -jar CrypticCore.jar <mode> <input> <output> <key>
+```
+
+### 5.2 Docker Execution
+
+```bash
+docker compose run --rm engine <mode> /app/data/input.txt /app/data/output.enc <key>
 ```
 
 **Parameters:**
@@ -103,11 +120,11 @@ java -jar CrypticCore.jar <mode> <input> <output> <key>
 * **output:** Final destination path for the transformed file.
 * **key:** Secret key for transformation.
 
-## 5. Quality Assurance
+## 6. Quality Assurance
 
 The project follows a rigorous testing strategy to ensure data integrity and system stability:
 
-### 5.1 Automated Quality Gate (CI/CD) & Observability
+### 6.1 Automated Quality Gate (CI/CD) & Observability
 
 The project utilizes **GitHub Actions** for continuous integration. Every push and pull request is
 automatically validated against:
@@ -116,11 +133,10 @@ automatically validated against:
 * **Checkstyle (Google Java Style):** Strict enforcement of
   the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html).
 * **Test Coverage (JaCoCo):** A quality gate is set to ensure a minimum of **85% code coverage**.
-* **Industrial Logging (SLF4J/Logback):** Replaced all standard output with a professional logging
-  facade. This ensures high observability in production environments and allows for easy
-  migration to structured JSON logging for cloud-native monitoring.
+* **Hybrid Structured Logging:** Implements environment-aware logging. The engine automatically
+  detects its environment and switches to Structured JSON Logging when running in Docker.
 
-### 5.2 Testing Strategy
+### 6.2 Testing Strategy
 
 * **Unit Testing:** Verified the involution property and edge cases (byte boundaries).
 * **Integration Testing:** End-to-end validation of the custom `.cce` format and header integrity.
@@ -131,7 +147,7 @@ automatically validated against:
     * Prevention of in-place corruption (Same-file validation).
     * Robust header and version validation.
 
-## 6. Project Architecture
+## 7. Project Architecture
 
 The engine is structured into specialized packages to ensure high maintainability and separation of
 concerns:
@@ -142,3 +158,22 @@ concerns:
   cryptography.
 * **`at.tuwien.crypticcore.io`**: Infrastructure layer handling format-specific headers (
   `HeaderHandler`), fail-fast validation (`FileValidator`), and the `ProgressObserver` pattern.
+
+```mermaid
+graph TD
+    A[CLI / Docker] --> B[Main Controller]
+    B --> C[Stream Orchestrator]
+    C --> D[XOR Strategy]
+    C --> E[Buffered I/O 8KB]
+    
+    subgraph Observability
+    B --> F[SLF4J/Logback]
+    F -- Local --> G[Console Text]
+    F -- Docker --> H[Structured JSON]
+    end
+    
+    subgraph Infrastructure
+    E --> I[Header Validation]
+    E --> J[Atomic Write Staging]
+    end
+```

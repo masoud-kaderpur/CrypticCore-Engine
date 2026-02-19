@@ -1,0 +1,6 @@
+services:
+  engine:
+    build: .
+    image: cryptic-core-engine:latest
+    volumes:
+      - .:/app/data
