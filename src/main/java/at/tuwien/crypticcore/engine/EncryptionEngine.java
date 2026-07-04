@@ -7,6 +7,7 @@ import static at.tuwien.crypticcore.io.HeaderHandler.writeHeader;
 import at.tuwien.crypticcore.api.CipherAlgorithm;
 import at.tuwien.crypticcore.io.HeaderHandler;
 import at.tuwien.crypticcore.io.ProgressObserver;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -71,6 +72,13 @@ public class EncryptionEngine {
 
     isValidInputs(mode, key, Paths.get(inputPath), Paths.get(outputPath), fileSize);
 
+    // bytes counter named "crypticcore.bytes.processed" (draft)
+    // structural Tag to distinguish between ENCRYPTION and DECRYPTION in dashboards
+    Counter bytesCounter = Counter.builder("crypticcore.bytes.processed")
+        .description("Total number of bytes processed by the streaming engine")
+        .tag("mode", mode.name())
+        .register(meterRegistry);
+
     try (FileInputStream in = new FileInputStream(inputPath);
          FileOutputStream out = new FileOutputStream(outputPath)) {
       if (mode == CrypticMode.ENCRYPTION) {
@@ -87,7 +95,8 @@ public class EncryptionEngine {
           buffer[i] = algorithm.transform(buffer[i], key[keyPointer++]);
         }
         out.write(buffer, 0, bytesRead);
-
+        // increment the counter by the exact number of bytes processed in this block
+        bytesCounter.increment(bytesRead);
         totalBytesProcessed += bytesRead;
         int currentPercentage = (int) ((totalBytesProcessed * 100L) / fileSize);
         if (currentPercentage > lastPercentage && observer != null) {
