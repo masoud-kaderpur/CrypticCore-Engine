@@ -9,6 +9,7 @@ import at.tuwien.crypticcore.io.HeaderHandler;
 import at.tuwien.crypticcore.io.ProgressObserver;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -79,6 +80,15 @@ public class EncryptionEngine {
         .tag("mode", mode.name())
         .register(meterRegistry);
 
+    // registration of the timer
+    Timer latencyTimer = Timer.builder("crypticcore.transformation.latency")
+        .description("Latency of the core streaming transformation loop")
+        .tag("mode", mode.name())
+        .register(meterRegistry);
+
+    // starting the stopwatch
+    Timer.Sample sample = Timer.start(meterRegistry);
+
     try (FileInputStream in = new FileInputStream(inputPath);
          FileOutputStream out = new FileOutputStream(outputPath)) {
       if (mode == CrypticMode.ENCRYPTION) {
@@ -105,6 +115,10 @@ public class EncryptionEngine {
         }
       }
     }
+
+    // stoping the stopwatch
+    sample.stop(latencyTimer);
+
     if (totalBytesProcessed != fileSize) {
       throw new IOException("Data truncation detected! Expected "
               + fileSize
