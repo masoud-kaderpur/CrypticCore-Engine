@@ -7,6 +7,7 @@ import static at.tuwien.crypticcore.io.HeaderHandler.writeHeader;
 import at.tuwien.crypticcore.api.CipherAlgorithm;
 import at.tuwien.crypticcore.io.HeaderHandler;
 import at.tuwien.crypticcore.io.ProgressObserver;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -22,6 +23,7 @@ import java.nio.file.Paths;
 public class EncryptionEngine {
   private final CipherAlgorithm algorithm;
   private final ProgressObserver observer;
+  private final MeterRegistry meterRegistry;
 
   /**
    * Initializes the engine with a specific cryptographic algorithm strategy.
@@ -29,9 +31,13 @@ public class EncryptionEngine {
    * @param algorithm the cryptographic strategy to be applied
    * @param observer  the callback for monitoring processing progress
    */
-  public EncryptionEngine(CipherAlgorithm algorithm, ProgressObserver observer) {
+  public EncryptionEngine(
+      CipherAlgorithm algorithm,
+      ProgressObserver observer,
+      MeterRegistry meterRegistry) {
     this.algorithm = algorithm;
     this.observer = observer;
+    this.meterRegistry = meterRegistry;
   }
 
   /**

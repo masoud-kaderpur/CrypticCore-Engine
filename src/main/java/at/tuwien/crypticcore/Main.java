@@ -6,6 +6,8 @@ import at.tuwien.crypticcore.engine.CrypticMode;
 import at.tuwien.crypticcore.engine.EncryptionEngine;
 import at.tuwien.crypticcore.engine.XorCipher;
 import at.tuwien.crypticcore.io.ProgressObserver;
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -49,6 +51,9 @@ public class Main {
       return;
     }
 
+    // meterregistry is managin the metrics
+    PrometheusMeterRegistry meterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+
     String mode = args[0];
     String input = args[1];
     String output = args[2];
@@ -66,7 +71,7 @@ public class Main {
     };
 
     CipherAlgorithm xor = new XorCipher();
-    EncryptionEngine engine = new EncryptionEngine(xor, consoleObserver);
+    EncryptionEngine engine = new EncryptionEngine(xor, consoleObserver, meterRegistry);
 
     byte[] key = password.getBytes(StandardCharsets.UTF_8);
 
