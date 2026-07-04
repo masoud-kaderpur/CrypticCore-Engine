@@ -6,9 +6,12 @@ import at.tuwien.crypticcore.engine.CrypticMode;
 import at.tuwien.crypticcore.engine.EncryptionEngine;
 import at.tuwien.crypticcore.engine.XorCipher;
 import at.tuwien.crypticcore.io.ProgressObserver;
+import com.sun.net.httpserver.HttpServer;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -53,6 +56,26 @@ public class Main {
 
     // meterregistry is managin the metrics
     PrometheusMeterRegistry meterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+
+    // Create an HTTP server listening on port 8080
+    HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+
+    // Map the /metrics endpoint to scrape the Micrometer registry
+    server.createContext("/metrics", exchange -> {
+      // This formats the internal metrics into the official Prometheus text format
+      String response = meterRegistry.scrape();
+
+      exchange.getResponseHeaders().set("Content-Type", "text/plain; version=0.0.4; charset=utf-8");
+      byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
+      exchange.sendResponseHeaders(200, responseBytes.length);
+
+      try (OutputStream os = exchange.getResponseBody()) {
+        os.write(responseBytes);
+      }
+    });
+
+    server.start();
+    logger.info("Prometheus metrics endpoint live at http://localhost:8080/metrics");
 
     String mode = args[0];
     String input = args[1];
@@ -110,6 +133,9 @@ public class Main {
       logger.info("File Size:   {} MB", String.format("%.2f", megabytes));
       logger.info("Time taken:  {} ms", String.format("%.2f", durationMs));
       logger.info("Throughput:  {} MB/s", String.format("%.2f", throughput));
+
+      logger.info("Holding engine alive for telemetry inspection. Press Ctrl+C to terminate.");
+      Thread.currentThread().join();
 
     } catch (Exception e) {
       Files.deleteIfExists(Paths.get(tempOutput));
