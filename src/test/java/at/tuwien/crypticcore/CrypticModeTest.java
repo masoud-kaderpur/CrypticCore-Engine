@@ -1,6 +1,6 @@
 package at.tuwien.crypticcore;
 
-import at.tuwien.crypticcore.engine.CrypticMode;
+import at.tuwien.crypticcore.core.domain.CrypticMode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;

@@ -222,7 +222,7 @@ Generate a large test file (e.g., 100 MB or 1 GB) to benchmark throughput and la
 
 Linux/macOS:
 ```bash
-dd if=/dev/urandom of=large_input.txt bs=1m count=10
+dd if=/dev/urandom of=input.txt bs=10m count=100
 ```
 
 Windows(PowerShell):
@@ -234,7 +234,7 @@ Compile and run the binary application:
 
 ```bash
 mvn clean package
-java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION large_input.txt output.enc secretkey
+java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt output.enc secretkey
 ```
 
 Note: The application will log that the telemetry server is live on port 8080 and hold execution until manually terminated via Ctrl+C.

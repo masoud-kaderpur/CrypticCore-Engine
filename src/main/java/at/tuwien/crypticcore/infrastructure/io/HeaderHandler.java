@@ -1,4 +1,4 @@
-package at.tuwien.crypticcore.io;
+package at.tuwien.crypticcore.infrastructure.io;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

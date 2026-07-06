@@ -1,6 +1,6 @@
-package at.tuwien.crypticcore.io;
+package at.tuwien.crypticcore.infrastructure.io;
 
-import at.tuwien.crypticcore.engine.CrypticMode;
+import at.tuwien.crypticcore.core.domain.CrypticMode;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;

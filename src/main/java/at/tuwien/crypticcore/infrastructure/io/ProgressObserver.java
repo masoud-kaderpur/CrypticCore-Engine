@@ -1,4 +1,4 @@
-package at.tuwien.crypticcore.io;
+package at.tuwien.crypticcore.infrastructure.io;
 
 /**
  * Callback interface for monitoring data processing.

@@ -1,4 +1,4 @@
-package at.tuwien.crypticcore.api;
+package at.tuwien.crypticcore.core.domain;
 
 /**
  * Represents a functional strategy for single-byte cryptographic transformations.
@@ -19,9 +19,6 @@ public interface CipherAlgorithm {
    * @param key  the byte used to influence the transformation logic
    *
    * @return the resulting transformed byte
-   *
-   * @throws ArithmeticException if the transformation encounters  an unrecoverable mathematical
-   *                             error
    * @apiNote In high-performance scenarios, consider the overhead of primitive boxing.
    */
   byte transform(byte data, byte key);

@@ -1,7 +1,7 @@
 package at.tuwien.crypticcore;
 
-import at.tuwien.crypticcore.api.CipherAlgorithm;
-import at.tuwien.crypticcore.engine.XorCipher;
+import at.tuwien.crypticcore.core.domain.CipherAlgorithm;
+import at.tuwien.crypticcore.core.engine.XorCipher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
