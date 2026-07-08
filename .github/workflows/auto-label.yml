@@ -1,0 +1,53 @@
+name: Keyword Labeler and Commenter
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  label-and-comment:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Process issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = (context.payload.issue.title || '').toLowerCase();
+            const body = (context.payload.issue.body || '').toLowerCase();
+            
+            const labelsToAdd = [];
+            let commentBody = "";
+
+            // Check for bugs
+            if (title.includes('bug') || body.includes('error') || body.includes('crash')) {
+              labelsToAdd.push('bug');
+              commentBody += "Thanks for reporting this bug! I will take a look at the logs shortly. Please make sure you've included your OS and environmental details.\n\n";
+            }
+
+            // Check for feature requests
+            if (title.includes('feat') || body.includes('feature request')) {
+              labelsToAdd.push('enhancement');
+              commentBody += "Thanks for the suggestion! I will review this feature request during our next roadmap triage.\n\n";
+            }
+
+            // If any labels matched, apply them
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: labelsToAdd
+              });
+            }
+
+            // If a custom comment message was built, post it
+            if (commentBody) {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: commentBody.trim()
+              });
+            }
