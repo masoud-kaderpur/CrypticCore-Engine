@@ -151,12 +151,13 @@ automatically validated against:
 The engine is structured into specialized packages to ensure high maintainability and separation of
 concerns:
 
-* **`at.tuwien.crypticcore.api`**: Functional interfaces and core contracts for algorithm
+* **`at.tuwien.crypticcore.core.domain`**: Functional interfaces and core contracts for algorithm
   strategies.
-* **`at.tuwien.crypticcore.engine`**: The orchestration layer. Stateless execution of streaming
+* **`at.tuwien.crypticcore.core.engine`**: The orchestration layer. Stateless execution of streaming
   cryptography.
-* **`at.tuwien.crypticcore.io`**: Infrastructure layer handling format-specific headers (
+* **`at.tuwien.crypticcore.infrastructure.io`**: Infrastructure layer handling format-specific headers (
   `HeaderHandler`), fail-fast validation (`FileValidator`), and the `ProgressObserver` pattern.
+* **`at.tuwien.crypticcore.infrastructure.observability`**: Observability Layer (currently using Micrometer, Prometheus, Grafana).
 
 ## 8. Telemetry & Grafana Pipeline Step-by-Step
 
