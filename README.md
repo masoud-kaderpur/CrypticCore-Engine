@@ -7,8 +7,7 @@
 
 CrypticCore is a high-performance Java-based encryption engine designed for memory-efficient file
 transformation. It implements a decoupled architecture that separates the cryptographic logic
-from the data streaming process, enriched with production-grade, vendor-neutral telemetry.
-
+from the data streaming process, enriched with production-grade, vendor-neutral distributed tracing via OpenTelemetry.
 ---
 
 ## 1. Theoretical Foundation
@@ -48,7 +47,7 @@ $$Result = (P \land 0xFF) \oplus (K \land 0xFF)$$
   arbitrary size (tested up to
   5 GB) to be processed with minimal RAM footprint.
 * **Throughput**: Optimized for high-speed I/O, achieving over **400 MB/s** on standard hardware.
-* **Real-time Telemetry**: Integrated progress bar, vendor-neutral Micrometer instrumentation, and performance statistics (throughput, processing latency).
+* **Distributed Tracing**: Native OpenTelemetry instrumentation tracking execution flows, file sizes, and streaming states without blocking performance.
 
 ### 2.3 Robustness & Safety
 
@@ -79,11 +78,9 @@ The engine is built on SOLID principles to ensure extensibility and testability:
 
 The engine is fully containerized to ensure environment parity and security.
 
-* **Multi-Stage Docker Build:** Uses a builder stage (Maven) and a hardened runtime stage (JRE
-  Alpine) to minimize image size (~160MB) and attack surface.
+* **Multi-Stage Docker Build:** Uses a builder stage (Maven) and a hardened runtime stage (JRE Alpine) to minimize image size and attack surface.
 * **Security Hardening:** The container execution is restricted to a **Non-Root User**.
-* **Orchestration Stack:** Includes a unified `docker-compose.yml` that provisions the engine along with a containerized time-series database (Prometheus) and visualization node (Grafana) in a shared network topology.
-
+* **Orchestration Stack:** Includes a unified `docker-compose.yml` that spins up a local OpenTelemetry-compliant backend (Jaeger) to receive and visualize application performance traces via the OTLP network layer.
 ---
 
 ## 4. File Format Specification
@@ -131,9 +128,7 @@ automatically validated against:
 * **Checkstyle (Google Java Style):** Strict enforcement of
   the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html).
 * **Test Coverage (JaCoCo):** A quality gate is set to ensure a minimum of **85% code coverage**.
-* **Hybrid Structured Logging:** Implements environment-aware logging. The engine automatically
-  detects its environment and switches to Structured JSON Logging when running in Docker.
-* **Telemetric Exporters:** Exposes real-time runtime counters and timing metrics formatted natively for Prometheus scraping via an embedded low-overhead HTTP daemon.
+* **Hybrid Structured Logging:** The engine automatically detects its environment and switches to Structured JSON Logging when running inside Docker.
 
 ### 6.2 Testing Strategy
 
@@ -151,34 +146,20 @@ automatically validated against:
 The engine is structured into specialized packages to ensure high maintainability and separation of
 concerns:
 
-* **`at.tuwien.crypticcore.core.domain`**: Functional interfaces and core contracts for algorithm
-  strategies.
-* **`at.tuwien.crypticcore.core.engine`**: The orchestration layer. Stateless execution of streaming
-  cryptography.
+* **`at.tuwien.crypticcore.core.domain`**: Core contracts, domain exceptions, and algorithm strategies (CipherAlgorithm).
+* **`at.tuwien.crypticcore.core.engine`**: The orchestration layer. Stateless, performance-optimized execution of streaming cryptography.
 * **`at.tuwien.crypticcore.infrastructure.io`**: Infrastructure layer handling format-specific headers (
-  `HeaderHandler`), fail-fast validation (`FileValidator`), and the `ProgressObserver` pattern.
-* **`at.tuwien.crypticcore.infrastructure.observability`**: Observability Layer (currently using Micrometer, Prometheus, Grafana).
+  `HeaderHandler`), fail-fast validation (`FileValidator`).
+* **`at.tuwien.crypticcore.infrastructure.observability`**: Central bootstrapping layer managing the automatic configuration initialization of the OpenTelemetry SDK.
 
-## 8. Telemetry & Grafana Pipeline Step-by-Step
+## 8. Telemetry & Jaeger Pipeline Step-by-Step
 
-Follow these steps to spin up the metrics pipeline, process a file, and visualize the data within Grafana.
+Follow these steps to spin up the local observability environment, execute a cryptographic operation, and visualize your application traces.
 
-### 8.1 Verify the Configuration Files
+### 8.1 Docker Compose Environment Configuration
 
-Ensure your project root contains the following configuration structures:
+Ensure your project root contains the following modern docker-compose.yml:
 
-prometheus.yml
-```yaml
-global:
-  scrape_interval: 2s
-
-scrape_configs:
-  - job_name: 'crypticcore-engine'
-    static_configs:
-      - targets: ['host.docker.internal:8080']
-```
-
-docker-compose.yml
 ```yaml
 services:
   engine:
@@ -188,33 +169,28 @@ services:
       - .:/app/data
     extra_hosts:
       - "host.docker.internal:host-gateway"
-
-  prometheus:
-    image: prom/prometheus:v2.53.0
-    container_name: cc-prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
-  grafana:
-    image: grafana/grafana:11.0.0
-    container_name: cc-grafana
-    ports:
-      - "3001:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - OTEL_SERVICE_NAME=cryptic-core
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=none
+      - OTEL_LOGS_EXPORTER=none
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.60
+    container_name: cc-jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
 ```
+### 8.2 Spin up the Trace Backend
 
-### 8.2 Spin up the Infrastructure
-
-Boot the integrated monitoring infrastructure using Docker Compose:
+Boot up Jaeger inside your Docker daemon:
 
 ```bash
-docker compose down
-docker compose up -d
+docker compose up -d jaeger
 ```
 
 ### 8.3 Generate Local Data & Run the Engine
@@ -231,22 +207,32 @@ Windows(PowerShell):
 $fs = New-Object System.IO.FileStream("large_input.txt", [System.IO.FileMode]::Create); $fs.SetLength(100MB); $fs.Close()
 ```
 
-Compile and run the binary application:
+Execute a transformation loop. We instruct the OpenTelemetry autoconfigurator via standard environment flags to wire the context and stream data into the local daemon:
 
 ```bash
 mvn clean package
+
+# Windows (PowerShell)
+$env:OTEL_SERVICE_NAME="cryptic-core"
+$env:OTEL_TRACES_EXPORTER="otlp"
+$env:OTEL_METRICS_EXPORTER="none"
+$env:OTEL_LOGS_EXPORTER="none"
 java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt output.enc secretkey
+
+# Linux / macOS
+OTEL_SERVICE_NAME=cryptic-core \
+OTEL_TRACES_EXPORTER=otlp \
+OTEL_METRICS_EXPORTER=none \
+OTEL_LOGS_EXPORTER=none \
+java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt output.enc secretkey```
 ```
 
-Note: The application will log that the telemetry server is live on port 8080 and hold execution until manually terminated via Ctrl+C.
+### 8.4 Inspect Traces in the Browser
 
-### 8.4 Wire and Build the Dashboard
-
-1. Open Grafana at http://localhost:3001 (Credentials: admin / admin).
-2. Navigate to Connections → Data sources → Add data source, and select Prometheus.
-3. Set the connection URL to: http://prometheus:9090 and click Save & test.
-4. Create a new dashboard panel, set the data source to your Prometheus entry, and configure the visualization with these PromQL formulas:
-
+1. Open your browser and navigate to http://localhost:16686.
+2. Select cryptic-core from the Service dropdown menu on the left side panel.
+3. Click Find Traces.
+4. Click on the corresponding trace block to expand the execution lifecycle. Inspect the custom attributes (such as cryptic.file.size or cryptic.algorithm) along with your timeline events (inputs_verified, header_written, streaming_completed).
 Accumulated Volume Panel:
 
 ```bash
