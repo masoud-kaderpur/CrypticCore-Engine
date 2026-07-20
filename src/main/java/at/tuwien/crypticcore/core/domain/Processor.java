@@ -11,7 +11,7 @@ import java.io.IOException;
  * the high-level orchestrator layers from specific cryptographic strategy implementations
  * and cross-cutting architectural concerns such as infrastructure metrics or logging.</p>
  */
-public interface StreamProcessor {
+public interface Processor {
 
   /**
    * Transforms an input file and streams the output to a specified destination path

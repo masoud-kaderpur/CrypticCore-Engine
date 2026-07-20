@@ -2,14 +2,13 @@ package at.tuwien.crypticcore;
 
 import at.tuwien.crypticcore.core.domain.CipherAlgorithm;
 import at.tuwien.crypticcore.core.domain.CrypticMode;
-import at.tuwien.crypticcore.core.domain.StreamProcessor;
+import at.tuwien.crypticcore.core.domain.Processor;
 import at.tuwien.crypticcore.core.engine.XorCipher;
 import at.tuwien.crypticcore.core.engine.XorProcessor;
-import at.tuwien.crypticcore.infrastructure.io.ProgressObserver;
-import at.tuwien.crypticcore.infrastructure.observability.InstrumentedProcessor;
-import at.tuwien.crypticcore.infrastructure.observability.TelemetryServer;
+import at.tuwien.crypticcore.infrastructure.observability.OpenTelemetryConfig;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -51,13 +50,9 @@ public class Main {
       return;
     }
 
-    // 1. Initialize structural telemetry infrastructure
-    PrometheusMeterRegistry meterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
-    TelemetryServer telemetryServer = new TelemetryServer(8080, meterRegistry);
-    telemetryServer.start();
+    OpenTelemetrySdk otelSdk = OpenTelemetryConfig.init();
 
-    // 2. Extract application variables
-    String modeArg = args[0];
+    String mode = args[0];
     String input = args[1];
     String output = args[2];
     String password = args[3];
@@ -65,46 +60,27 @@ public class Main {
 
     byte[] key = password.getBytes(StandardCharsets.UTF_8);
 
-    // 3. Define presentation layer progress rendering
-    ProgressObserver consoleObserver = percentage -> {
-      System.out.print("\rProgress: [");
-      int bars = percentage / 2;
-      for (int i = 0; i < 50; i++) {
-        System.out.print(i < bars ? "=" : " ");
-      }
-      System.out.print("] " + percentage + "%");
-    };
-
     try {
-      logger.info("Initializing execution pipeline for mode: {}", modeArg);
+      logger.info("Initializing execution pipeline for mode: {}", mode);
 
-      // Parse domain models and configure structural payload parameters
-      CrypticMode crypticMode = CrypticMode.fromString(modeArg);
-      long rawSize = Files.size(Paths.get(input));
-      long sizeForProgress = (crypticMode == CrypticMode.DECRYPTION)
-          ? Math.max(0, rawSize - 4)
-          : rawSize;
+      CrypticMode crypticMode = CrypticMode.fromString(mode);
+      long size = Files.size(Paths.get(input));
 
-      if (crypticMode == CrypticMode.DECRYPTION && rawSize < 4) {
+      if (crypticMode == CrypticMode.DECRYPTION && size < 4) {
         throw new IllegalArgumentException("Invalid file: Too small for header.");
       }
 
-      // 4. Construct behavioral processing matrix using strict Dependency Injection
       CipherAlgorithm xorCipher = new XorCipher();
-      StreamProcessor pureEngine = new XorProcessor(xorCipher, consoleObserver);
-      StreamProcessor instrumentedProcessor = new InstrumentedProcessor(pureEngine, meterRegistry);
+      Processor processor = new XorProcessor(xorCipher);
 
-      // 5. Run operation combined with a micro-benchmark for CLI metrics printout
       long start = System.nanoTime();
-      instrumentedProcessor.processFile(crypticMode, input, tempOutput, key, sizeForProgress);
+      processor.processFile(crypticMode, input, tempOutput, key, size);
       long end = System.nanoTime();
 
-      // 6. Perform defensive atomic staging transfer
       Files.move(Paths.get(tempOutput), Paths.get(output), StandardCopyOption.REPLACE_EXISTING);
 
-      // Render local CLI processing overview summary
       double seconds = (end - start) / 1_000_000_000.0;
-      double megabytes = rawSize / (1024.0 * 1024.0);
+      double megabytes = size / (1024.0 * 1024.0);
       double throughput = megabytes / seconds;
       double durationMs = (end - start) / 1_000_000.0;
 
@@ -116,15 +92,20 @@ public class Main {
       logger.info("Throughput:  {} MB/s", String.format("%.2f", throughput));
 
       logger.info("Holding engine alive for telemetry inspection. Press Ctrl+C to terminate.");
-      Thread.currentThread().join();
+
+      try {
+        Thread.currentThread().join();
+      } catch (InterruptedException e) {
+        logger.info("Termination signal received.");
+        Thread.currentThread().interrupt();
+      }
 
     } catch (Exception e) {
       Files.deleteIfExists(Paths.get(tempOutput));
       logger.error("Critical error during processing: {}", e.getMessage());
     } finally {
-      // 7. Secure cryptographic arrays erasure and clean up sockets
       Arrays.fill(key, (byte) 0);
-      telemetryServer.stop();
     }
+    otelSdk.close();
   }
 }

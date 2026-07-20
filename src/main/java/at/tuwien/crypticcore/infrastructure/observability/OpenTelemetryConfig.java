@@ -1,4 +1,4 @@
-package at.tuwien.crypticcore.infrastructure.config;
+package at.tuwien.crypticcore.infrastructure.observability;
 
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;

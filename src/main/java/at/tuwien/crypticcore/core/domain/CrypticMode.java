@@ -3,7 +3,7 @@ package at.tuwien.crypticcore.core.domain;
 import java.util.Arrays;
 
 /**
- * Defines the operational state of a {@link StreamProcessor}.
+ * Defines the operational state of a {@link Processor}.
  * <p>This enumeration determines whether the processor should prepend
  * format headers (Encryption) or validate existing headers (Decryption) during the
  * transformation process.</p>

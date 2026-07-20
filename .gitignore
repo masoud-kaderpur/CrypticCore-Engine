@@ -45,5 +45,5 @@ out/
 Thumbs.db
 
 # Test Data
-input.txt
+*.txt
 output.enc

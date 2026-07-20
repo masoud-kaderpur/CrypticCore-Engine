@@ -6,8 +6,7 @@ import static at.tuwien.crypticcore.infrastructure.io.HeaderHandler.writeHeader;
 
 import at.tuwien.crypticcore.core.domain.CipherAlgorithm;
 import at.tuwien.crypticcore.core.domain.CrypticMode;
-import at.tuwien.crypticcore.core.domain.StreamProcessor;
-import at.tuwien.crypticcore.infrastructure.io.ProgressObserver;
+import at.tuwien.crypticcore.core.domain.Processor;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
@@ -20,22 +19,14 @@ import java.nio.file.Paths;
 /**
  * Core cryptographic stream processor implementation optimizing sequential file transformations.
  */
-public class XorProcessor implements StreamProcessor {
+public class XorProcessor implements Processor {
 
   private final CipherAlgorithm algorithm;
-  private final ProgressObserver observer;
   private final Tracer tracer;
 
-  /**
-   * Constructs the stream processor with explicit dependencies injected.
-   *
-   * @param algorithm the core single-byte transformation strategy to execute
-   * @param observer  the UI decoupled interface loop tracking streaming lifecycle progress
-   */
-  public XorProcessor(CipherAlgorithm algorithm, ProgressObserver observer) {
+  public XorProcessor(CipherAlgorithm algorithm) {
     this.algorithm = algorithm;
-    this.observer = observer;
-    tracer = GlobalOpenTelemetry.getTracer("at.tuwien.crypticcore.core.engine", "1.0.0");
+    this.tracer = GlobalOpenTelemetry.getTracer("at.tuwien.crypticcore.core.engine", "1.0.0");
   }
 
   @Override
@@ -57,7 +48,6 @@ public class XorProcessor implements StreamProcessor {
     try {
       int bytesRead;
       int keyPointer = 0;
-      int lastPercentage = -1;
       long totalBytesProcessed = 0;
       byte[] buffer = new byte[8192];
 
@@ -84,33 +74,32 @@ public class XorProcessor implements StreamProcessor {
           }
 
           out.write(buffer, 0, bytesRead);
-
           totalBytesProcessed += bytesRead;
-          int currentPercentage = (int) ((totalBytesProcessed * 100L) / fileSize);
-          if (currentPercentage > lastPercentage && observer != null) {
-            observer.onProgressUpdate(currentPercentage);
-            lastPercentage = currentPercentage;
-          }
         }
       }
 
-      if (totalBytesProcessed != fileSize) {
-        throw new IOException("Data truncation detected! Expected "
-            + fileSize
-            + " bytes but processed "
-            + totalBytesProcessed);
+      if (mode == CrypticMode.ENCRYPTION) {
+        if (totalBytesProcessed != fileSize) {
+          throw new IOException("Data truncation during encryption! Expected to process "
+              + fileSize + " bytes of payload, but processed " + totalBytesProcessed);
+        }
+      } else {
+        long totalReadWithHeader = totalBytesProcessed + 4;
+        if (totalReadWithHeader != fileSize) {
+          throw new IOException("Data truncation during decryption! Encrypted file size is "
+              + fileSize + " bytes, but we only accounted for " + totalReadWithHeader + " bytes.");
+        }
       }
 
       span.addEvent("streaming_completed");
       span.setStatus(StatusCode.OK);
 
-    } catch (Exception e) {
+    } catch (IOException | RuntimeException e) {
       span.recordException(e);
       span.setStatus(StatusCode.ERROR, e.getMessage());
       throw e;
     } finally {
       span.end();
     }
-
   }
 }
