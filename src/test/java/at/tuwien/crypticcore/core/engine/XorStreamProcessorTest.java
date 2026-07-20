@@ -19,7 +19,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 class XorStreamProcessorTest {
 
-  private XorStreamProcessor processor;
+  private XorProcessor processor;
   private List<Integer> progressUpdates;
 
   @TempDir
@@ -30,7 +30,7 @@ class XorStreamProcessorTest {
     XorCipher cipher = new XorCipher();
     progressUpdates = new ArrayList<>();
     ProgressObserver observer = percentage -> progressUpdates.add(percentage);
-    processor = new XorStreamProcessor(cipher, observer);
+    processor = new XorProcessor(cipher, observer);
   }
 
   @Test

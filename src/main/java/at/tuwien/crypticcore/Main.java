@@ -4,7 +4,7 @@ import at.tuwien.crypticcore.core.domain.CipherAlgorithm;
 import at.tuwien.crypticcore.core.domain.CrypticMode;
 import at.tuwien.crypticcore.core.domain.StreamProcessor;
 import at.tuwien.crypticcore.core.engine.XorCipher;
-import at.tuwien.crypticcore.core.engine.XorStreamProcessor;
+import at.tuwien.crypticcore.core.engine.XorProcessor;
 import at.tuwien.crypticcore.infrastructure.io.ProgressObserver;
 import at.tuwien.crypticcore.infrastructure.observability.InstrumentedProcessor;
 import at.tuwien.crypticcore.infrastructure.observability.TelemetryServer;
@@ -91,7 +91,7 @@ public class Main {
 
       // 4. Construct behavioral processing matrix using strict Dependency Injection
       CipherAlgorithm xorCipher = new XorCipher();
-      StreamProcessor pureEngine = new XorStreamProcessor(xorCipher, consoleObserver);
+      StreamProcessor pureEngine = new XorProcessor(xorCipher, consoleObserver);
       StreamProcessor instrumentedProcessor = new InstrumentedProcessor(pureEngine, meterRegistry);
 
       // 5. Run operation combined with a micro-benchmark for CLI metrics printout
