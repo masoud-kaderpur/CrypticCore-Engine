@@ -47,9 +47,12 @@ public class XorProcessor implements StreamProcessor {
       long fileSize) throws IOException {
 
     Span span = tracer.spanBuilder(mode.name().toLowerCase() + "_file")
-        .setAttribute("file.size", fileSize)
-        .setAttribute("file.input", inputPath)
+        .setAttribute("cryptic.file.size", fileSize)
+        .setAttribute("cryptic.file.input", inputPath)
+        .setAttribute("cryptic.algorithm", algorithm.getClass().getSimpleName())
         .startSpan();
+
+    span.addEvent("streaming_started");
 
     try {
       int bytesRead;
@@ -59,14 +62,17 @@ public class XorProcessor implements StreamProcessor {
       byte[] buffer = new byte[8192];
 
       isValidInputs(mode, key, Paths.get(inputPath), Paths.get(outputPath), fileSize);
+      span.addEvent("inputs_verified");
 
       try (FileInputStream in = new FileInputStream(inputPath);
           FileOutputStream out = new FileOutputStream(outputPath)) {
 
         if (mode == CrypticMode.ENCRYPTION) {
           writeHeader(out);
+          span.addEvent("header_written");
         } else {
           checkHeader(in);
+          span.addEvent("header_verified");
         }
 
         while ((bytesRead = in.read(buffer)) != -1) {
@@ -95,6 +101,7 @@ public class XorProcessor implements StreamProcessor {
             + totalBytesProcessed);
       }
 
+      span.addEvent("streaming_completed");
       span.setStatus(StatusCode.OK);
 
     } catch (Exception e) {
