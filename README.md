@@ -224,7 +224,7 @@ OTEL_SERVICE_NAME=cryptic-core \
 OTEL_TRACES_EXPORTER=otlp \
 OTEL_METRICS_EXPORTER=none \
 OTEL_LOGS_EXPORTER=none \
-java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt output.enc secretkey```
+java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt output.enc secretkey
 ```
 
 ### 8.4 Inspect Traces in the Browser
@@ -234,18 +234,5 @@ java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt outp
 3. Click Find Traces.
 4. Click on the corresponding trace block to expand the execution lifecycle. Inspect the custom attributes (such as cryptic.file.size or cryptic.algorithm) along with your timeline events (inputs_verified, header_written, streaming_completed).
 Accumulated Volume Panel:
-
-```bash
-crypticcore_bytes_processed_total / 1024 / 1024
-```
-
-(Unit configuration: Data → Megabytes (MB), style as a plateau or counter step graph)
-
-Restart-Aware Throughput Spike Panel:
-
-```bash
-increase(crypticcore_bytes_processed_total[1m]) / 1024 / 1024
-```
-
 
 
