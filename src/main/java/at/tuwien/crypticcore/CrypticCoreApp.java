@@ -2,6 +2,8 @@ package at.tuwien.crypticcore;
 
 import at.tuwien.crypticcore.core.domain.CipherAlgorithm;
 import at.tuwien.crypticcore.core.domain.EncryptionEngine;
+import at.tuwien.crypticcore.core.domain.exception.HeaderValidationException;
+import at.tuwien.crypticcore.core.domain.exception.ValidationException;
 import at.tuwien.crypticcore.core.domain.model.CrypticMode;
 import at.tuwien.crypticcore.core.engine.XorEncryptionEngine;
 import at.tuwien.crypticcore.core.engine.algorithm.XorCipher;
@@ -26,22 +28,11 @@ public class CrypticCoreApp {
 
   /**
    * Executes the cryptographic process based on command-line arguments.
-   * <p>The workflow follows these stages:
-   * <ol>
-   * <li>Argument validation and key derivation.</li>
-   * <li>Pre-calculation of payload size for accurate progress tracking.</li>
-   * <li>Transformation to a {@code .tmp} staging file to prevent data corruption.</li>
-   * <li>Atomic move of the staging file to the final destination.</li>
-   * <li>Security cleanup of sensitive key material.</li>
-   * </ol></p>
-   * *
    *
-   * @param args Array containing: {@code <mode>}, {@code <input path>},
+   * @param args containing: {@code <mode>}, {@code <input path>},
    *             {@code <output path>}, and {@code <password>}.
-   *
-   * @throws IOException if file system operations or stream processing fails.
    */
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) {
     if (args.length != 4) {
       System.out.println("correct syntax: java -jar CrypticCore.jar <mode> <input> <output> <key>");
       System.exit(1);
@@ -65,7 +56,7 @@ public class CrypticCoreApp {
       long size = Files.size(Paths.get(input));
 
       if (crypticMode == CrypticMode.DECRYPTION && size < 4) {
-        throw new IllegalArgumentException("Invalid file: Too small for header.");
+        throw new HeaderValidationException("Invalid file: Too small for CrypticCore header.");
       }
 
       CipherAlgorithm xorCipher = new XorCipher();
@@ -89,21 +80,23 @@ public class CrypticCoreApp {
       logger.info("Time taken:  {} ms", String.format("%.2f", durationMs));
       logger.info("Throughput:  {} MB/s", String.format("%.2f", throughput));
 
-      logger.info("Holding engine alive for telemetry inspection. Press Ctrl+C to terminate.");
-
-      try {
-        Thread.currentThread().join();
-      } catch (InterruptedException e) {
-        logger.info("Termination signal received.");
-        Thread.currentThread().interrupt();
-      }
-
+    } catch (ValidationException e) {
+      cleanUpStagingFile(tempOutput);
+      logger.error("Validation error: {}", e.getMessage());
     } catch (Exception e) {
-      Files.deleteIfExists(Paths.get(tempOutput));
-      logger.error("Critical error during processing: {}", e.getMessage());
+      cleanUpStagingFile(tempOutput);
+      logger.error("Critical error during processing: {}", e.getMessage(), e);
     } finally {
       Arrays.fill(key, (byte) 0);
+      otelSdk.close();
     }
-    otelSdk.close();
+  }
+
+  private static void cleanUpStagingFile(String tempPath) {
+    try {
+      Files.deleteIfExists(Paths.get(tempPath));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

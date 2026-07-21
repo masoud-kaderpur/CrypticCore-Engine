@@ -1,5 +1,6 @@
 package at.tuwien.crypticcore.core.domain;
 
+import at.tuwien.crypticcore.core.domain.exception.ValidationException;
 import at.tuwien.crypticcore.core.domain.model.CrypticMode;
 import java.io.IOException;
 
@@ -34,5 +35,5 @@ public interface EncryptionEngine {
       String inputPath,
       String outputPath,
       byte[] key,
-      long fileSize) throws IOException;
+      long fileSize) throws IOException, ValidationException;
 }

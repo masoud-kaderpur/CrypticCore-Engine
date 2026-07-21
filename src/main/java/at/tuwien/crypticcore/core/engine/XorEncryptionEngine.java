@@ -6,6 +6,9 @@ import static at.tuwien.crypticcore.infrastructure.io.HeaderHandler.writeHeader;
 
 import at.tuwien.crypticcore.core.domain.CipherAlgorithm;
 import at.tuwien.crypticcore.core.domain.EncryptionEngine;
+import at.tuwien.crypticcore.core.domain.exception.CrypticException;
+import at.tuwien.crypticcore.core.domain.exception.DataTruncationException;
+import at.tuwien.crypticcore.core.domain.exception.ValidationException;
 import at.tuwien.crypticcore.core.domain.model.CrypticMode;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.Span;
@@ -21,6 +24,7 @@ import java.nio.file.Paths;
  */
 public class XorEncryptionEngine implements EncryptionEngine {
 
+  private static final int BUFFER_SIZE = 8192;
   private final CipherAlgorithm algorithm;
   private final Tracer tracer;
 
@@ -35,21 +39,20 @@ public class XorEncryptionEngine implements EncryptionEngine {
       String inputPath,
       String outputPath,
       byte[] key,
-      long fileSize) throws IOException {
+      long fileSize) throws IOException, ValidationException {
 
     Span span = tracer.spanBuilder(mode.name().toLowerCase() + "_file")
         .setAttribute("cryptic.file.size", fileSize)
         .setAttribute("cryptic.file.input", inputPath)
-        .setAttribute("cryptic.algorithm", algorithm.getClass().getSimpleName())
+        .setAttribute("cryptic.algorithm", algorithm.getName())
         .startSpan();
 
     span.addEvent("streaming_started");
 
     try {
       int bytesRead;
-      int keyPointer = 0;
       long totalBytesProcessed = 0;
-      byte[] buffer = new byte[8192];
+      byte[] buffer = new byte[BUFFER_SIZE];
 
       isValidInputs(mode, key, Paths.get(inputPath), Paths.get(outputPath), fileSize);
       span.addEvent("inputs_verified");
@@ -66,13 +69,7 @@ public class XorEncryptionEngine implements EncryptionEngine {
         }
 
         while ((bytesRead = in.read(buffer)) != -1) {
-          for (int i = 0; i < bytesRead; i++) {
-            if (keyPointer == key.length) {
-              keyPointer = 0;
-            }
-            buffer[i] = algorithm.transform(buffer[i], key[keyPointer++]);
-          }
-
+          algorithm.transform(buffer, bytesRead, key, totalBytesProcessed);
           out.write(buffer, 0, bytesRead);
           totalBytesProcessed += bytesRead;
         }
@@ -80,23 +77,27 @@ public class XorEncryptionEngine implements EncryptionEngine {
 
       if (mode == CrypticMode.ENCRYPTION) {
         if (totalBytesProcessed != fileSize) {
-          throw new IOException("Data truncation during encryption! Expected to process "
-              + fileSize + " bytes of payload, but processed " + totalBytesProcessed);
+          throw new DataTruncationException("Data truncation during encryption! Expected: "
+              + fileSize + " bytes, processed: " + totalBytesProcessed);
         }
       } else {
         long totalReadWithHeader = totalBytesProcessed + 4;
         if (totalReadWithHeader != fileSize) {
-          throw new IOException("Data truncation during decryption! Encrypted file size is "
-              + fileSize + " bytes, but we only accounted for " + totalReadWithHeader + " bytes.");
+          throw new DataTruncationException("Data truncation during decryption! Expected: "
+              + fileSize + " bytes, accounted: " + totalReadWithHeader);
         }
       }
 
       span.addEvent("streaming_completed");
       span.setStatus(StatusCode.OK);
 
-    } catch (IOException | RuntimeException e) {
+    } catch (CrypticException | IOException e) {
       span.recordException(e);
       span.setStatus(StatusCode.ERROR, e.getMessage());
+      throw e;
+    } catch (RuntimeException e) {
+      span.recordException(e);
+      span.setStatus(StatusCode.ERROR, "Unexpected runtime error: " + e.getMessage());
       throw e;
     } finally {
       span.end();

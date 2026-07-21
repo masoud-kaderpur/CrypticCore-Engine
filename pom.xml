@@ -43,6 +43,17 @@
 
     <dependencies>
         <dependency>
+          <groupId>org.openjdk.jmh</groupId>
+          <artifactId>jmh-core</artifactId>
+          <version>1.37</version>
+        </dependency>
+        <dependency>
+          <groupId>org.openjdk.jmh</groupId>
+          <artifactId>jmh-generator-annprocess</artifactId>
+          <version>1.37</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
           <groupId>io.opentelemetry</groupId>
           <artifactId>opentelemetry-exporter-otlp</artifactId>
         </dependency>
