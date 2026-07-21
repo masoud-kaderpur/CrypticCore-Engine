@@ -150,7 +150,7 @@ concerns:
 * **`at.tuwien.crypticcore.core.engine`**: The orchestration layer. Stateless, performance-optimized execution of streaming cryptography.
 * **`at.tuwien.crypticcore.infrastructure.io`**: Infrastructure layer handling format-specific headers (
   `HeaderHandler`), fail-fast validation (`FileValidator`).
-* **`at.tuwien.crypticcore.infrastructure.observability`**: Central bootstrapping layer managing the automatic configuration initialization of the OpenTelemetry SDK.
+* **`at.tuwien.crypticcore.infrastructure.telemetry`**: Central bootstrapping layer managing the automatic configuration initialization of the OpenTelemetry SDK.
 
 ## 8. Telemetry & Jaeger Pipeline Step-by-Step
 

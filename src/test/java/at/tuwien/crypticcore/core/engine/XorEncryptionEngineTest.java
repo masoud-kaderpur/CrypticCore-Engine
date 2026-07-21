@@ -4,7 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import at.tuwien.crypticcore.core.domain.CrypticMode;
+import at.tuwien.crypticcore.core.domain.model.CrypticMode;
+import at.tuwien.crypticcore.core.engine.algorithm.XorCipher;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,9 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-class XorProcessorTest {
+class XorEncryptionEngineTest {
 
-  private XorProcessor processor;
+  private XorEncryptionEngine processor;
 
   @TempDir
   Path tempDir;
@@ -22,7 +23,7 @@ class XorProcessorTest {
   @BeforeEach
   void setUp() {
     XorCipher cipher = new XorCipher();
-    processor = new XorProcessor(cipher);
+    processor = new XorEncryptionEngine(cipher);
   }
 
   @Test

@@ -113,7 +113,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>at.tuwien.crypticcore.Main</mainClass>
+                            <mainClass>at.tuwien.crypticcore.CrypticCoreApp</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -217,7 +217,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>at.tuwien.crypticcore.Main</mainClass>
+                            <mainClass>at.tuwien.crypticcore.CrypticCoreApp</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

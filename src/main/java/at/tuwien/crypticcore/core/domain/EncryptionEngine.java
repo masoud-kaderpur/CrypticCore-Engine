@@ -1,5 +1,6 @@
 package at.tuwien.crypticcore.core.domain;
 
+import at.tuwien.crypticcore.core.domain.model.CrypticMode;
 import java.io.IOException;
 
 /**
@@ -11,7 +12,7 @@ import java.io.IOException;
  * the high-level orchestrator layers from specific cryptographic strategy implementations
  * and cross-cutting architectural concerns such as infrastructure metrics or logging.</p>
  */
-public interface Processor {
+public interface EncryptionEngine {
 
   /**
    * Transforms an input file and streams the output to a specified destination path

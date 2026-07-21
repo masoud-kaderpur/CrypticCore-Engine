@@ -1,9 +1,0 @@
-global:
-  scrape_interval: 2s # Ask your Java app for updates every 2 seconds
-
-scrape_configs:
-  - job_name: 'crypticcore-engine'
-    static_configs:
-      # host.docker.internal allows Prometheus (running inside Docker)
-      # to safely reach out to your actual host PC where your Java jar runs.
-      - targets: ['host.docker.internal:8080']

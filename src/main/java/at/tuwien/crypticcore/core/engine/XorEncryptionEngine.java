@@ -5,8 +5,8 @@ import static at.tuwien.crypticcore.infrastructure.io.HeaderHandler.checkHeader;
 import static at.tuwien.crypticcore.infrastructure.io.HeaderHandler.writeHeader;
 
 import at.tuwien.crypticcore.core.domain.CipherAlgorithm;
-import at.tuwien.crypticcore.core.domain.CrypticMode;
-import at.tuwien.crypticcore.core.domain.Processor;
+import at.tuwien.crypticcore.core.domain.EncryptionEngine;
+import at.tuwien.crypticcore.core.domain.model.CrypticMode;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
@@ -19,12 +19,12 @@ import java.nio.file.Paths;
 /**
  * Core cryptographic stream processor implementation optimizing sequential file transformations.
  */
-public class XorProcessor implements Processor {
+public class XorEncryptionEngine implements EncryptionEngine {
 
   private final CipherAlgorithm algorithm;
   private final Tracer tracer;
 
-  public XorProcessor(CipherAlgorithm algorithm) {
+  public XorEncryptionEngine(CipherAlgorithm algorithm) {
     this.algorithm = algorithm;
     this.tracer = GlobalOpenTelemetry.getTracer("at.tuwien.crypticcore.core.engine", "1.0.0");
   }

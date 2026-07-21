@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import at.tuwien.crypticcore.core.domain.CrypticMode;
+import at.tuwien.crypticcore.core.domain.model.CrypticMode;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;

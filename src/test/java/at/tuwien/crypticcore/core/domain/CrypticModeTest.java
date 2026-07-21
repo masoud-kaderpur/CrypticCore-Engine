@@ -3,6 +3,7 @@ package at.tuwien.crypticcore.core.domain;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import at.tuwien.crypticcore.core.domain.model.CrypticMode;
 import org.junit.jupiter.api.Test;
 
 class CrypticModeTest {

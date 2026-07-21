@@ -1,13 +1,11 @@
 package at.tuwien.crypticcore;
 
 import at.tuwien.crypticcore.core.domain.CipherAlgorithm;
-import at.tuwien.crypticcore.core.domain.CrypticMode;
-import at.tuwien.crypticcore.core.domain.Processor;
-import at.tuwien.crypticcore.core.engine.XorCipher;
-import at.tuwien.crypticcore.core.engine.XorProcessor;
-import at.tuwien.crypticcore.infrastructure.observability.OpenTelemetryConfig;
-import io.micrometer.prometheusmetrics.PrometheusConfig;
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
+import at.tuwien.crypticcore.core.domain.EncryptionEngine;
+import at.tuwien.crypticcore.core.domain.model.CrypticMode;
+import at.tuwien.crypticcore.core.engine.XorEncryptionEngine;
+import at.tuwien.crypticcore.core.engine.algorithm.XorCipher;
+import at.tuwien.crypticcore.infrastructure.telemetry.OpenTelemetryConfig;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -23,8 +21,8 @@ import org.slf4j.LoggerFactory;
  * <p>This class manages the composition root of the application, orchestrating
  * dependency injection, argument parsing, telemetry setup, and atomic file replacement.</p>
  */
-public class Main {
-  private static final Logger logger = LoggerFactory.getLogger(Main.class);
+public class CrypticCoreApp {
+  private static final Logger logger = LoggerFactory.getLogger(CrypticCoreApp.class);
 
   /**
    * Executes the cryptographic process based on command-line arguments.
@@ -71,7 +69,7 @@ public class Main {
       }
 
       CipherAlgorithm xorCipher = new XorCipher();
-      Processor processor = new XorProcessor(xorCipher);
+      EncryptionEngine processor = new XorEncryptionEngine(xorCipher);
 
       long start = System.nanoTime();
       processor.processFile(crypticMode, input, tempOutput, key, size);

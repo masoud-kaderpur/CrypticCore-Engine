@@ -1,4 +1,4 @@
-package at.tuwien.crypticcore.core.engine;
+package at.tuwien.crypticcore.core.engine.algorithm;
 
 import at.tuwien.crypticcore.core.domain.CipherAlgorithm;
 
