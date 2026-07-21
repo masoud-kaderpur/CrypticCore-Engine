@@ -13,10 +13,6 @@ import java.nio.file.Path;
  */
 public class FileValidator {
 
-  private FileValidator() {
-    // Utility class
-  }
-
   /**
    * Performs a pre-flight check on all operation parameters to ensure fail-fast behavior.
    *

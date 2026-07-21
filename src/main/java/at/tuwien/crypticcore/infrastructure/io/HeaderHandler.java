@@ -17,10 +17,6 @@ public class HeaderHandler {
   private static final byte[] MAGIC = "CCE".getBytes(StandardCharsets.US_ASCII);
   private static final byte VERSION = 1;
 
-  private HeaderHandler() {
-    // Utility class
-  }
-
   /**
    * Persists the CrypticCore metadata header to the output stream.
    *

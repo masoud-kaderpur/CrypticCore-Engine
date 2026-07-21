@@ -18,6 +18,11 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 
+/**
+ * JMH microbenchmark suite measuring throughput performance for {@link XorCipher} operations.
+ * <p>Compares optimized array-level transformations against naive single-byte loop implementations
+ * across varying buffer sizes.</p>
+ */
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
@@ -30,9 +35,15 @@ public class XorEngineBenchmark {
   private byte[] key;
   private byte[] dataBuffer;
 
+  /**
+   * Buffer sizes in bytes tested during execution (1 KB, 8 KB, 64 KB).
+   */
   @Param({"1024", "8192", "65536"})
   private int bufferSize;
 
+  /**
+   * Prepares the cipher algorithm, key, and pseudo-random test data prior to benchmark execution.
+   */
   @Setup(Level.Trial)
   public void setup() {
     this.xorCipher = new XorCipher();
@@ -42,12 +53,22 @@ public class XorEngineBenchmark {
     new Random(42).nextBytes(dataBuffer);
   }
 
+  /**
+   * Benchmarks optimized stream/array-level XOR transformation provided by {@link XorCipher}.
+   *
+   * @return the transformed data buffer
+   */
   @Benchmark
   public byte[] benchmarkBulkArrayTransform() {
     xorCipher.transform(dataBuffer, dataBuffer.length, key, 0);
     return dataBuffer;
   }
 
+  /**
+   * Benchmarks a naive single-byte loop XOR transformation as a performance baseline.
+   *
+   * @return the transformed data buffer
+   */
   @Benchmark
   public byte[] benchmarkSingleByteTransformNaive() {
     for (int i = 0; i < dataBuffer.length; i++) {

@@ -2,224 +2,109 @@
 
 ![Build Status](https://github.com/masoud-kaderpur/CrypticCore-Engine/actions/workflows/ci.yml/badge.svg)
 ![Java Version](https://img.shields.io/badge/Java-21-blue)
+![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2F%20SOLID-orange)
+![Observability](https://img.shields.io/badge/Observability-OpenTelemetry%20%2F%20OTLP-yellow)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED)
 
-CrypticCore is a high-performance Java-based encryption engine designed for memory-efficient file
-transformation. It implements a decoupled architecture that separates the cryptographic logic
-from the data streaming process, enriched with production-grade, vendor-neutral distributed tracing via OpenTelemetry.
+**CrypticCore Engine** is a high-throughput, memory-efficient Java 21 streaming encryption service 
+built with enterprise production standards in mind. Designed for cloud-native deployment, 
+it decouples core cryptographic strategies from file I/O and features zero-overhead, vendor-neutral 
+distributed tracing via **OpenTelemetry (OTLP)**.
 ---
 
-## 1. Theoretical Foundation
+## Executive Summary 
 
-### 1.1 The Transformation (XOR Logic)
+* **Low Memory Footprint ($O(1)$ Space Complexity):** Constant 8 KB heap allocation processes files of arbitrary size (tested up to 5 GB+) without Garbage Collection pressure.
+* **Observability First (OTLP Standard):** Native OpenTelemetry instrumentation with zero proprietary vendor lock-in. Instantly exports spans, metric attributes, and execution lifecycle events to **Dynatrace**, **Jaeger**, or **Datadog**.
+* **Engineered for High-Performance I/O:** Statistically benchmarked using **JMH (Java Microbenchmark Harness)** achieving up to **~740 MB/s** throughput on single-threaded execution.
+* **Resilient & Secure:** Atomic file-staging (`.tmp` write + atomic move), strict magic-byte validation (`CCE`), custom exception hierarchies, and secure heap sanitation (`Arrays.fill()`).
+* **Production-Grade Infrastructure:** Containerized with multi-stage Alpine Docker builds, run as a non-root user, and configured for hybrid structured JSON logging.
 
-The engine utilizes the bitwise **Exclusive OR (XOR)** operation. Given that XOR is an involution,
-the transformation is self-inverse, allowing for identical encryption and decryption logic.
+--- 
+
+## 1. Architecture & Design Principles
+
+The engine adheres strictly to **SOLID design principles** and **Clean Architecture**:
+
+* **`at.tuwien.crypticcore.core.domain`**: Domain models, CipherAlgorithm interface, Custom Exception Hierachy 
+* **`at.tuwien.crypticcore.core.engine`**: Stateless execution engine, streaming orchestration and tracing
+* **`at.tuwien.crypticcore.infrastructure.io`**: Headerhandler (Magic Bytes), FileValidator (Pre-flight checks)
+* **`at.tuwien.crypticcore.infrastructure.telemetry`**: OpenTelemetry SDK bootstrap & OTLP exporter configuration
+* **`at.tuwien.crypticcore.CrypticCoreApp.java`**: CLI Entry Point, lifecycle management and graceful shutdown
+
+### Key Architectural Highlights
+* **Single Responsibility (SRP):** Cryptographic transformations (`XorCipher`), I/O streaming (`XorEncryptionEngine`), file safety (`FileValidator`), and header encoding (`HeaderHandler`) are strictly isolated.
+* **Dependency Inversion (DIP):** Core domain relies solely on abstractions (`CipherAlgorithm`). Swapping algorithms (e.g., from XOR to AES) requires zero changes to the streaming/tracing logic.
+* **Observability Integration:** Spans track the complete lifecycle (`inputs_verified` -> `header_written` -> `streaming_completed`), capturing vital diagnostic metadata (`cryptic.file.size`, `cryptic.algorithm`, `cryptic.throughput_mb_s`).
+
+---
+
+## 2. Theoretical Foundation & Optimization
+
+### 2.1 The Transformation & Key Schedule
+The engine utilizes bitwise Exclusive OR (**XOR**) streaming. Since XOR is an involution ($P \oplus K \oplus K = P$), identical logic is used for encryption and decryption.
 
 The operation is defined as:
 
 $$P \oplus K = C$$
 $$C \oplus K = P$$
 
-### 1.2 Key Streaming (Modular Arithmetic)
-
-To handle data streams where the length of the plaintext exceeds the key length, a cyclic key
-schedule is implemented:
-
-$$i_{key} = i_{file} \pmod{L_{key}}$$
+### 2.2 Sign Extension & Bitmasking
+Java `byte` is signed ($-128$ to $127$). To prevent unintended sign extension during implicit 32-bit `int` promotion in bitwise operations, a bitmask of `0xFF` is enforced:
+$$\text{Result} = (P \land 0xFF) \oplus (K \land 0xFF)$$
 
 ---
 
-## 2. Implementation Details
+## 3. Performance & JMH Benchmarks
 
-### 2.1 Java Type Handling (Sign Extension Mitigation)
+The core streaming engine uses an **8 KB bulk byte-array buffer** matched to standard OS page sizes to maximize CPU L1/L2 cache efficiency and leverage JIT compiler optimizations.
 
-To prevent unintended sign extension during the implicit promotion from `byte` to 32-bit `int`, a
-bitmask of $0xFF$ is
-applied to maintain 8-bit integrity:
+Microbenchmarked via **JMH (Java Microbenchmark Harness)** on Java 21 (Temurin):
 
-$$Result = (P \land 0xFF) \oplus (K \land 0xFF)$$
+| Buffer Size              | Mode | Throughput (ops/s) | Approx. Throughput |
+|:-------------------------| :--- | :--- | :--- |
+| **1024 Bytes**           | Throughput | 728,205 ops/s | ~745 MB/s |
+| **8192 Bytes (Default)** | Throughput | **90,204 ops/s** | **~738.9 MB/s** |
+| **65536 Bytes**          | Throughput | 12,023 ops/s | ~787 MB/s |
 
-### 2.2 Memory Efficiency & Performance
-
-* **O(1) Space Complexity**: Processes data in discrete **8 KB buffers**, allowing files of
-  arbitrary size (tested up to
-  5 GB) to be processed with minimal RAM footprint.
-* **Throughput**: Optimized for high-speed I/O, achieving over **400 MB/s** on standard hardware.
-* **Distributed Tracing**: Native OpenTelemetry instrumentation tracking execution flows, file sizes, and streaming states without blocking performance.
-
-### 2.3 Robustness & Safety
-
-* **Atomic Writes**: Utilizes a `.tmp` file staging strategy. The final output is only created via
-  an atomic `move`
-  operation upon successful completion, preventing data corruption during crashes or power failures.
-* **Memory Sanitation**: The encryption key is explicitly overwritten in the JVM heap using
-  `Arrays.fill()` immediately
-  after use to mitigate memory dump exploits.
-* **Header Validation**: Strict magic number and version checking prevents the processing of
-  incompatible or corrupted
-  files.
-
-### 2.4 SOLID Architecture & Decoupling
-
-The engine is built on SOLID principles to ensure extensibility and testability:
-
-* **Single Responsibility (SRP):** I/O handling, header validation, metric recording, and cryptographic logic are
-  strictly separated into specialized components (`HeaderHandler`, `FileValidator`, `EncryptionEngine`).
-* **Dependency Inversion (DIP):** The engine does not depend on a specific UI or monitoring platform. It communicates progress through a `ProgressObserver` interface and accepts a vendor-neutral Micrometer `MeterRegistry` via constructor injection, rendering it compatible with Prometheus, Dynatrace, or Datadog.
-* **Interface Segregation:** Cryptographic strategies are injected via the `CipherAlgorithm`
-  interface, making the engine open for future algorithms (e.g., AES) without modifying the core streaming
-  logic.
+> *Note: By keeping heap allocations static ($O(1)$), GC pause times remain at virtually zero regardless of file volume.*
 
 ---
 
-## 3. Cloud-Native & Containerization
+## 4. File Format Specification (`.cce`)
 
-The engine is fully containerized to ensure environment parity and security.
+All encrypted files generated by CrypticCore contain a 4-byte metadata header to prevent processing corrupted or unauthorized files.
 
-* **Multi-Stage Docker Build:** Uses a builder stage (Maven) and a hardened runtime stage (JRE Alpine) to minimize image size and attack surface.
-* **Security Hardening:** The container execution is restricted to a **Non-Root User**.
-* **Orchestration Stack:** Includes a unified `docker-compose.yml` that spins up a local OpenTelemetry-compliant backend (Jaeger) to receive and visualize application performance traces via the OTLP network layer.
+| Offset | Length | Description | Value (Hex / ASCII) |
+| :--- | :--- | :--- | :--- |
+| `0x00` | 3 Bytes | Magic Number | `0x43 0x43 0x45` ("CCE") |
+| `0x03` | 1 Byte | Format Version | `0x01` |
 ---
 
-## 4. File Format Specification
+## 5. Security & System Resilience
 
-Every encrypted file starts with a 4-byte metadata header.
-
-| Offset | Length  | Description        | Value (Hex / ASCII) |
-|:-------|:--------|:-------------------|:--------------------|
-| 0x00   | 3 Bytes | Magic Number (CCE) | `0x43 0x43 0x45`    |
-| 0x03   | 1 Byte  | Format Version     | `0x01`              |
+1. **Atomic File Writes:** Writes to a staging file (`.tmp`) during stream processing. The destination file is created via an atomic `Files.move()` operation **only** after stream completion, guaranteeing zero zero-byte/corrupted files during unexpected crashes.
+2. **Memory Sanitation:** Immediately following key usage, sensitive byte arrays are explicitly sanitized in memory via `Arrays.fill(key, (byte) 0)` to reduce exposure to heap-dump vulnerabilities.
+3. **Fail-Fast Validation:** Validates file existence, non-emptiness, path equality, and available disk space prior to opening file handles.
 
 ---
 
-## 5. Usage
+## 6. Observability Stack (OpenTelemetry & Jaeger)
 
-### 5.1 Native Execution
+The engine streams traces out-of-the-box using the OTLP/gRPC protocol on port `4317`.
 
-```bash
-java -jar target/CrypticCore-jar-with-dependencies.jar <mode> <input> <output> <key>
-```
+### Quickstart with Docker & Jaeger
 
-### 5.2 Docker Execution
-
-```bash
-docker compose run --rm engine <mode> /app/data/input.txt /app/data/output.enc <key>
-```
-
-**Parameters:**
-
-* **mode:** `ENCRYPTION` or `DECRYPTION` (Case-insensitive).
-* **input:** Path to the source file.
-* **output:** Final destination path for the transformed file.
-* **key:** Secret key for transformation.
-
-## 6. Quality Assurance
-
-The project follows a rigorous testing strategy to ensure data integrity and system stability:
-
-### 6.1 Automated Quality Gate (CI/CD) & Observability
-
-The project utilizes **GitHub Actions** for continuous integration. Every push and pull request is
-automatically validated against:
-
-* **Compilation & Test Suite:** Ensures 100% build stability on Java 21.
-* **Checkstyle (Google Java Style):** Strict enforcement of
-  the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html).
-* **Test Coverage (JaCoCo):** A quality gate is set to ensure a minimum of **85% code coverage**.
-* **Hybrid Structured Logging:** The engine automatically detects its environment and switches to Structured JSON Logging when running inside Docker.
-
-### 6.2 Testing Strategy
-
-* **Unit Testing:** Verified the involution property and edge cases (byte boundaries).
-* **Integration Testing:** End-to-end validation of the custom `.cce` format and header integrity.
-* **Resilience:** Validation of atomic write operations and prevention of data truncation.
-* **End-to-End Cycle:** Successful encryption and decryption of real file streams.
-* **Atomic Integrity:** Verification of the `.tmp` staging and atomic move strategy.
-* **Error Resilience:** * Detection of truncated files (Expected vs. Actual size check).
-    * Prevention of in-place corruption (Same-file validation).
-    * Robust header and version validation.
-
-## 7. Project Architecture
-
-The engine is structured into specialized packages to ensure high maintainability and separation of
-concerns:
-
-* **`at.tuwien.crypticcore.core.domain`**: Core contracts, domain exceptions, and algorithm strategies (CipherAlgorithm).
-* **`at.tuwien.crypticcore.core.engine`**: The orchestration layer. Stateless, performance-optimized execution of streaming cryptography.
-* **`at.tuwien.crypticcore.infrastructure.io`**: Infrastructure layer handling format-specific headers (
-  `HeaderHandler`), fail-fast validation (`FileValidator`).
-* **`at.tuwien.crypticcore.infrastructure.telemetry`**: Central bootstrapping layer managing the automatic configuration initialization of the OpenTelemetry SDK.
-
-## 8. Telemetry & Jaeger Pipeline Step-by-Step
-
-Follow these steps to spin up the local observability environment, execute a cryptographic operation, and visualize your application traces.
-
-### 8.1 Docker Compose Environment Configuration
-
-Ensure your project root contains the following modern docker-compose.yml:
-
-```yaml
-services:
-  engine:
-    build: .
-    image: cryptic-core-engine:latest
-    volumes:
-      - .:/app/data
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    environment:
-      - OTEL_SERVICE_NAME=cryptic-core
-      - OTEL_TRACES_EXPORTER=otlp
-      - OTEL_METRICS_EXPORTER=none
-      - OTEL_LOGS_EXPORTER=none
-
-  jaeger:
-    image: jaegertracing/all-in-one:1.60
-    container_name: cc-jaeger
-    ports:
-      - "16686:16686"
-      - "4317:4317"
-      - "4318:4318"
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
-```
-### 8.2 Spin up the Trace Backend
-
-Boot up Jaeger inside your Docker daemon:
-
+1. **Spin up the Observability Backend:**
 ```bash
 docker compose up -d jaeger
 ```
 
-### 8.3 Generate Local Data & Run the Engine
-
-Generate a large test file (e.g., 100 MB or 1 GB) to benchmark throughput and latency.
-
-Linux/macOS:
-```bash
-dd if=/dev/urandom of=input.txt bs=10m count=100
-```
-
-Windows(PowerShell):
-```bash
-$fs = New-Object System.IO.FileStream("large_input.txt", [System.IO.FileMode]::Create); $fs.SetLength(100MB); $fs.Close()
-```
-
-Execute a transformation loop. We instruct the OpenTelemetry autoconfigurator via standard environment flags to wire the context and stream data into the local daemon:
-
+2. **Execute a Transformed Stream**
 ```bash
 mvn clean package
 
-# Windows (PowerShell)
-$env:OTEL_SERVICE_NAME="cryptic-core"
-$env:OTEL_TRACES_EXPORTER="otlp"
-$env:OTEL_METRICS_EXPORTER="none"
-$env:OTEL_LOGS_EXPORTER="none"
-java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt output.enc secretkey
-
-# Linux / macOS
 OTEL_SERVICE_NAME=cryptic-core \
 OTEL_TRACES_EXPORTER=otlp \
 OTEL_METRICS_EXPORTER=none \
@@ -227,12 +112,28 @@ OTEL_LOGS_EXPORTER=none \
 java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt output.enc secretkey
 ```
 
-### 8.4 Inspect Traces in the Browser
+3. **Inspect Traces**
+   Navigate to http://localhost:16686 to explore full execution timelines, span events, and error diagnostics.
 
-1. Open your browser and navigate to http://localhost:16686.
-2. Select cryptic-core from the Service dropdown menu on the left side panel.
-3. Click Find Traces.
-4. Click on the corresponding trace block to expand the execution lifecycle. Inspect the custom attributes (such as cryptic.file.size or cryptic.algorithm) along with your timeline events (inputs_verified, header_written, streaming_completed).
-Accumulated Volume Panel:
+## 7. Quality Assurance & CI/CD
 
+* **GitHub Actions Pipeline:** Automatic build, test, and style enforcement on every push/PR. 
+* **Code Style:** Google Java Style Guide via maven-checkstyle-plugin. 
+* **Code Coverage:** JaCoCo quality gate requiring >85% instruction coverage. 
+* **Testing Strategy:** Unit testing (JUnit 5, AssertJ), integration testing for stream integrity, resilience testing for corrupted headers and edge-case byte boundaries.
 
+---
+
+## 8. Usage
+
+**Native CLI**
+
+```bash
+java -jar target/CrypticCore-jar-with-dependencies.jar <ENCRYPTION|DECRYPTION> <input_file> <output_file> <secret_key>
+```
+
+**Docker**
+
+```bash
+docker compose run --rm engine ENCRYPTION /app/data/input.txt /app/data/output.cce secretkey
+```
