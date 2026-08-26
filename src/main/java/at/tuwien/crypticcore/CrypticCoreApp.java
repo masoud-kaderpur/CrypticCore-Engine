@@ -70,15 +70,17 @@ public class CrypticCoreApp {
 
       double seconds = (end - start) / 1_000_000_000.0;
       double megabytes = size / (1024.0 * 1024.0);
-      double throughput = megabytes / seconds;
+      double throughput = (seconds > 0) ? megabytes / seconds : Double.NaN;
       double durationMs = (end - start) / 1_000_000.0;
+
+      String throughputString = Double.isNaN(throughput) ? "N/A" : String.format("%.2f", throughput);
 
       logger.info("Operation completed successfully.");
       logger.info("----- Performance Statistics -----");
       logger.info("Action:      {}", crypticMode);
       logger.info("File Size:   {} MB", String.format("%.2f", megabytes));
       logger.info("Time taken:  {} ms", String.format("%.2f", durationMs));
-      logger.info("Throughput:  {} MB/s", String.format("%.2f", throughput));
+      logger.info("Throughput:  {} MB/s", throughputString);
 
     } catch (ValidationException e) {
       cleanUpStagingFile(tempOutput);
