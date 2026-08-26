@@ -46,3 +46,7 @@ Thumbs.db
 
 # Test Data
 *.txt
+
+# Enviroment Files
+.env
+.env.*
