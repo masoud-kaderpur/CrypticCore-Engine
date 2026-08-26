@@ -16,9 +16,9 @@ public interface CipherAlgorithm {
   void transform(byte[] buffer, int length, byte[] key, long streamOffset);
 
   /**
-   * Returns the canonical name of the algorithm.
+   * Returns the name of the algorithm.
    *
-   * @return algorithm identifier
+   * @return algorithm name
    */
   String getName();
 }

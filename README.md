@@ -35,7 +35,7 @@ The engine adheres strictly to **SOLID design principles** and **Clean Architect
 * **`at.tuwien.crypticcore.CrypticCoreApp.java`**: CLI Entry Point, lifecycle management and graceful shutdown
 
 ### Key Architectural Highlights
-* **Single Responsibility (SRP):** Cryptographic transformations (`XorCipher`), I/O streaming (`XorEncryptionEngine`), file safety (`FileValidator`), and header encoding (`HeaderHandler`) are strictly isolated.
+* **Single Responsibility (SRP):** Cryptographic transformations (`XorCipher`), I/O streaming (`XorEncryptionEngine`), file safety (`ContextValidator`), and header encoding (`HeaderHandler`) are strictly isolated.
 * **Dependency Inversion (DIP):** Core domain relies solely on abstractions (`CipherAlgorithm`). Swapping algorithms (e.g., from XOR to AES) requires zero changes to the streaming/tracing logic.
 * **Observability Integration:** Spans track the complete lifecycle (`inputs_verified` -> `header_written` -> `streaming_completed`), capturing vital diagnostic metadata (`cryptic.file.size`, `cryptic.algorithm`, `cryptic.throughput_mb_s`).
 

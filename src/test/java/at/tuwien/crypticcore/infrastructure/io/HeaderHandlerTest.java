@@ -24,10 +24,12 @@ class HeaderHandlerTest {
   Path tempDir;
 
   private Path testFile;
+  private HeaderHandler headerHandler;
 
   @BeforeEach
   void setUp() {
     testFile = tempDir.resolve("header_test.cce");
+    headerHandler = new HeaderHandler();
   }
 
   @Nested
@@ -38,7 +40,7 @@ class HeaderHandlerTest {
     @DisplayName("Should write 4-byte header consisting of 'CCE' magic bytes and version 1")
     void shouldWriteValidHeader() throws IOException {
       try (FileOutputStream out = new FileOutputStream(testFile.toFile())) {
-        HeaderHandler.writeHeader(out);
+        headerHandler.writeHeader(out);
       }
 
       byte[] fileBytes = Files.readAllBytes(testFile);
@@ -58,11 +60,11 @@ class HeaderHandlerTest {
     @DisplayName("Should successfully validate a correctly formatted header")
     void shouldAcceptValidHeader() throws IOException {
       try (FileOutputStream out = new FileOutputStream(testFile.toFile())) {
-        HeaderHandler.writeHeader(out);
+        headerHandler.writeHeader(out);
       }
 
       try (FileInputStream in = new FileInputStream(testFile.toFile())) {
-        assertThatCode(() -> HeaderHandler.checkHeader(in)).doesNotThrowAnyException();
+        assertThatCode(() -> headerHandler.validateHeader(in)).doesNotThrowAnyException();
       }
     }
 
@@ -72,9 +74,9 @@ class HeaderHandlerTest {
       Files.write(testFile, "CC".getBytes(StandardCharsets.US_ASCII));
 
       try (FileInputStream in = new FileInputStream(testFile.toFile())) {
-        assertThatThrownBy(() -> HeaderHandler.checkHeader(in))
+        assertThatThrownBy(() -> headerHandler.validateHeader(in))
             .isInstanceOf(HeaderValidationException.class)
-            .hasMessage("Incorrect CrypticCore-Engine Data!");
+            .hasMessage("incorrect crypticCore-engine data!");
       }
     }
 
@@ -85,9 +87,9 @@ class HeaderHandlerTest {
       Files.write(testFile, invalidMagicHeader);
 
       try (FileInputStream in = new FileInputStream(testFile.toFile())) {
-        assertThatThrownBy(() -> HeaderHandler.checkHeader(in))
+        assertThatThrownBy(() -> headerHandler.validateHeader(in))
             .isInstanceOf(HeaderValidationException.class)
-            .hasMessage("Incorrect CrypticCore-Engine Data!");
+            .hasMessage("incorrect crypticCore-engine data!");
       }
     }
 
@@ -98,9 +100,9 @@ class HeaderHandlerTest {
       Files.write(testFile, invalidVersionHeader);
 
       try (FileInputStream in = new FileInputStream(testFile.toFile())) {
-        assertThatThrownBy(() -> HeaderHandler.checkHeader(in))
+        assertThatThrownBy(() -> headerHandler.validateHeader(in))
             .isInstanceOf(HeaderValidationException.class)
-            .hasMessage("Incompatible version: 2");
+            .hasMessage("incompatible version: 2");
       }
     }
   }
