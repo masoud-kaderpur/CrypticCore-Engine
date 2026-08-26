@@ -28,9 +28,9 @@ distributed tracing via **OpenTelemetry (OTLP)**.
 
 The engine adheres strictly to **SOLID design principles** and **Clean Architecture**:
 
-* **`at.tuwien.crypticcore.core.domain`**: Domain models, CipherAlgorithm interface, Custom Exception Hierachy 
+* **`at.tuwien.crypticcore.core.domain`**: Domain models, CipherAlgorithm interface, Validator interface, HeaderCodec interface, Context record, Custom Exception Hierachy 
 * **`at.tuwien.crypticcore.core.engine`**: Stateless execution engine, streaming orchestration and tracing
-* **`at.tuwien.crypticcore.infrastructure.io`**: Headerhandler (Magic Bytes), FileValidator (Pre-flight checks)
+* **`at.tuwien.crypticcore.infrastructure.io`**: Headerhandler (Magic Bytes), ContextValidator (Checks)
 * **`at.tuwien.crypticcore.infrastructure.telemetry`**: OpenTelemetry SDK bootstrap & OTLP exporter configuration
 * **`at.tuwien.crypticcore.CrypticCoreApp.java`**: CLI Entry Point, lifecycle management and graceful shutdown
 
