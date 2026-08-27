@@ -1,4 +1,4 @@
-hipackage at.tuwien.crypticcore.core.engine;
+package at.tuwien.crypticcore.core.engine;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
