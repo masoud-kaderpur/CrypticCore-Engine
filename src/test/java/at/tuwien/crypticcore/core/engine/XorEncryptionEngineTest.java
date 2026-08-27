@@ -1,4 +1,4 @@
-package at.tuwien.crypticcore.core.engine;
+hipackage at.tuwien.crypticcore.core.engine;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -9,6 +9,7 @@ import at.tuwien.crypticcore.core.domain.HeaderCodec;
 import at.tuwien.crypticcore.core.domain.Validator;
 import at.tuwien.crypticcore.core.domain.exception.DataTruncationException;
 import at.tuwien.crypticcore.core.domain.model.CrypticMode;
+import at.tuwien.crypticcore.core.engine.XorEncryptionEngine;
 import at.tuwien.crypticcore.core.engine.algorithm.XorCipher;
 import at.tuwien.crypticcore.infrastructure.io.ContextValidator;
 import at.tuwien.crypticcore.infrastructure.io.HeaderHandler;
@@ -52,7 +53,7 @@ class XorEncryptionEngineTest {
       byte[] key = "SecretKey123".getBytes(StandardCharsets.UTF_8);
       long size = input.length;
 
-      Context context = new Context(CrypticMode.ENCRYPTION, inputPath, outputPath, key, size);
+      Context context = new Context(CrypticMode.ENCRYPTION, inputPath, outputPath, null,  key, size);
 
       Files.write(inputPath, input);
 
@@ -76,13 +77,13 @@ class XorEncryptionEngineTest {
       Files.writeString(inputPath, secretText, StandardCharsets.UTF_8);
       long originalSize = Files.size(inputPath);
 
-      Context context = new Context(CrypticMode.ENCRYPTION, inputPath, encryptedPath, key, originalSize);
+      Context context = new Context(CrypticMode.ENCRYPTION, inputPath, encryptedPath, null, key, originalSize);
 
       engine.process(context);
 
       long encryptedSize = Files.size(encryptedPath);
 
-      context =  new Context(CrypticMode.DECRYPTION, encryptedPath, decryptedPath, key, encryptedSize);
+      context =  new Context(CrypticMode.DECRYPTION, encryptedPath, decryptedPath, null,  key, encryptedSize);
 
       engine.process(context);
 
@@ -106,7 +107,7 @@ class XorEncryptionEngineTest {
 
       long size = 20;
 
-      Context context = new Context(CrypticMode.ENCRYPTION, inputPath, outputPath, key, size);
+      Context context = new Context(CrypticMode.ENCRYPTION, inputPath, outputPath, null, key, size);
       assertThatThrownBy(() ->
           engine.process(context)
       )
@@ -126,12 +127,12 @@ class XorEncryptionEngineTest {
       Files.writeString(inputPath, content, StandardCharsets.UTF_8);
       long originalSize = Files.size(inputPath);
 
-      Context context = new Context(CrypticMode.ENCRYPTION, inputPath, encryptedPath, key, originalSize);
+      Context context = new Context(CrypticMode.ENCRYPTION, inputPath, encryptedPath, null, key, originalSize);
       engine.process(context);
 
       long wrongEncryptedSize = 50;
 
-      Context context2 = new Context(CrypticMode.DECRYPTION, encryptedPath, decryptedPath, key, wrongEncryptedSize);
+      Context context2 = new Context(CrypticMode.DECRYPTION, encryptedPath, decryptedPath, null, key, wrongEncryptedSize);
 
       assertThatThrownBy(() ->
           engine.process(context2)

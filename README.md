@@ -32,7 +32,8 @@ The engine adheres strictly to **SOLID design principles** and **Clean Architect
 * **`at.tuwien.crypticcore.core.engine`**: Stateless execution engine, streaming orchestration and tracing
 * **`at.tuwien.crypticcore.infrastructure.io`**: Headerhandler (Magic Bytes), ContextValidator (Checks)
 * **`at.tuwien.crypticcore.infrastructure.telemetry`**: OpenTelemetry SDK bootstrap & OTLP exporter configuration
-* **`at.tuwien.crypticcore.CrypticCoreApp.java`**: CLI Entry Point, lifecycle management and graceful shutdown
+* **`at.tuwien.crypticcore.App.java`**: CLI Entry Point and composition root
+* **`at.tuwien.crypticcore.Executor.java`**: Workflow orchestrator coordinating validations, execution, and atomic file moves.
 
 ### Key Architectural Highlights
 * **Single Responsibility (SRP):** Cryptographic transformations (`XorCipher`), I/O streaming (`XorEncryptionEngine`), file safety (`ContextValidator`), and header encoding (`HeaderHandler`) are strictly isolated.
@@ -146,7 +147,7 @@ OTEL_SERVICE_NAME=cryptic-core \
 OTEL_TRACES_EXPORTER=otlp \
 OTEL_METRICS_EXPORTER=none \
 OTEL_LOGS_EXPORTER=none \
-java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt output.enc PASSWORD
+java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt outputt.txt PASSWORD
 ```
 
 #### 3. **Inspect Traces**

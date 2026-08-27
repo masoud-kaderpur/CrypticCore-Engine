@@ -56,12 +56,13 @@
       <groupId>org.openjdk.jmh</groupId>
       <artifactId>jmh-core</artifactId>
       <version>${jmh.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.openjdk.jmh</groupId>
       <artifactId>jmh-generator-annprocess</artifactId>
       <version>${jmh.version}</version>
-      <scope>provided</scope>
+      <scope>test</scope>
     </dependency>
 
     <!-- Observability & Telemetry -->
@@ -80,10 +81,6 @@
     <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-registry-prometheus</artifactId>
     </dependency>
 
     <!-- Logging & Formatting -->
@@ -130,12 +127,6 @@
       <version>${assertj.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>uk.org.webcompere</groupId>
-      <artifactId>system-stubs-jupiter</artifactId>
-      <version>${system-stubs.version}</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
@@ -168,10 +159,9 @@
         <version>0.8.12</version>
         <configuration>
           <excludes>
-            <exclude>**/jmh_generated/**</exclude>
-            <exclude>**/*Benchmark*</exclude>
-            <exclude>**/CrypticCoreApp*</exclude>
             <exclude>**/*Exception*</exclude>
+            <exclude>**/*Executor*</exclude>
+            <exclude>**/*App*</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -248,7 +238,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>at.tuwien.crypticcore.CrypticCoreApp</mainClass>
+              <mainClass>at.tuwien.crypticcore.App</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>
@@ -275,7 +265,7 @@
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <mainClass>at.tuwien.crypticcore.CrypticCoreApp</mainClass>
+              <mainClass>at.tuwien.crypticcore.App</mainClass>
             </manifest>
           </archive>
         </configuration>

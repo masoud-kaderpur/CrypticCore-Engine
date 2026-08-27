@@ -9,6 +9,7 @@ import java.nio.file.Path;
  * @param mode the cryptic mode
  * @param inputPath the input path
  * @param outputPath the output path
+ * @param tempOutputPath the temporary output path
  * @param key the secret key
  * @param fileSize the size of the file
  */
@@ -16,6 +17,7 @@ public record Context(
     CrypticMode mode,
     Path inputPath,
     Path outputPath,
+    Path tempOutputPath,
     byte[] key,
     long fileSize) {
 }

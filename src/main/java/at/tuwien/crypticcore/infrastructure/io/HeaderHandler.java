@@ -1,22 +1,19 @@
 package at.tuwien.crypticcore.infrastructure.io;
 
+import static at.tuwien.crypticcore.core.domain.FormatSpecification.MAGIC;
+import static at.tuwien.crypticcore.core.domain.FormatSpecification.VERSION;
+
 import at.tuwien.crypticcore.core.domain.HeaderCodec;
 import at.tuwien.crypticcore.core.domain.exception.HeaderValidationException;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
  * handles the cce specific file format metadata.
  */
 public class HeaderHandler implements HeaderCodec {
-
-  private static final byte[] MAGIC = "CCE".getBytes(StandardCharsets.US_ASCII);
-  private static final byte VERSION = 1;
 
   @Override
   public void writeHeader(OutputStream out) throws IOException {
