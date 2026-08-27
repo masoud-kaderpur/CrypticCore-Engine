@@ -36,9 +36,12 @@ class XorEncryptionEngineTest {
     CipherAlgorithm cipher = new XorCipher();
     Validator validator = new ContextValidator();
     HeaderCodec headerCodec = new HeaderHandler();
-    this.engine = new XorEncryptionEngine(cipher, validator, headerCodec);
-  }
 
+    io.opentelemetry.api.trace.Tracer tracer = io.opentelemetry.api.OpenTelemetry.noop()
+        .getTracer("at.tuwien.crypticcore.test");
+
+    this.engine = new XorEncryptionEngine(cipher, validator, headerCodec, tracer);
+  }
   @Nested
   @DisplayName("Happy Path File Transformations")
   class HappyPathTests {

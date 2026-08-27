@@ -6,7 +6,7 @@
 
   <groupId>at.tuwien.crypticcore</groupId>
   <artifactId>crypticcore-engine</artifactId>
-  <version>1.0</version>
+  <version>1.0.0</version>
 
   <name>CrypticCore Engine</name>
 

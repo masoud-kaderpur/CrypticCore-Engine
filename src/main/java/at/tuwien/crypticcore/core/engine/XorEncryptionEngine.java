@@ -11,7 +11,6 @@ import at.tuwien.crypticcore.core.domain.exception.CrypticException;
 import at.tuwien.crypticcore.core.domain.exception.DataTruncationException;
 import at.tuwien.crypticcore.core.domain.exception.ValidationException;
 import at.tuwien.crypticcore.core.domain.model.CrypticMode;
-import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
@@ -20,7 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * core engine implementation.
+ * this class represents the core xor engine implementation.
  */
 public class XorEncryptionEngine implements EncryptionEngine {
 
@@ -40,11 +39,12 @@ public class XorEncryptionEngine implements EncryptionEngine {
   public XorEncryptionEngine(
       CipherAlgorithm algorithm,
       Validator validator,
-      HeaderCodec headerCodec) {
+      HeaderCodec headerCodec,
+      Tracer tracer) {
     this.algorithm = algorithm;
     this.validator = validator;
     this.headerCodec = headerCodec;
-    this.tracer = GlobalOpenTelemetry.getTracer("at.tuwien.crypticcore.core.engine", "1.0.0");
+    this.tracer = tracer;
   }
 
   @Override

@@ -28,8 +28,8 @@ distributed tracing via **OpenTelemetry (OTLP)**.
 
 The engine adheres strictly to **SOLID design principles** and **Clean Architecture**:
 
-* **`at.tuwien.crypticcore.core.domain`**: Domain models, CipherAlgorithm interface, Validator interface, HeaderCodec interface, Context record, Custom Exception Hierachy 
-* **`at.tuwien.crypticcore.core.engine`**: Stateless execution engine, streaming orchestration and tracing
+* **`at.tuwien.crypticcore.core.domain`**: Domain models, interfaces (CipherAlgorithm, Validator, HeaderCodec), Context record and Custom Exception Hierarchy 
+* **`at.tuwien.crypticcore.core.engine`**: Stateless execution engine, streaming orchestration, and explicit telemetry consumption via injected abstractions
 * **`at.tuwien.crypticcore.infrastructure.io`**: Headerhandler (Magic Bytes), ContextValidator (Checks)
 * **`at.tuwien.crypticcore.infrastructure.telemetry`**: OpenTelemetry SDK bootstrap & OTLP exporter configuration
 * **`at.tuwien.crypticcore.App.java`**: CLI Entry Point and composition root
@@ -37,7 +37,7 @@ The engine adheres strictly to **SOLID design principles** and **Clean Architect
 
 ### Key Architectural Highlights
 * **Single Responsibility (SRP):** Cryptographic transformations (`XorCipher`), I/O streaming (`XorEncryptionEngine`), file safety (`ContextValidator`), and header encoding (`HeaderHandler`) are strictly isolated.
-* **Dependency Inversion (DIP):** Core domain relies solely on abstractions (`CipherAlgorithm`). Swapping algorithms (e.g., from XOR to AES) requires zero changes to the streaming/tracing logic.
+* **Dependency Inversion (DIP):** The core domain and engine rely solely on pure abstractions (`CipherAlgorithm, Validator, HeaderCodec and Tracer`). By completely eliminating hidden global lookups and service locators, the engine is entirely decoupled from infrastructure and fully testable in isolation. 
 * **Observability Integration:** Spans track the complete lifecycle (`inputs_verified` -> `header_written` -> `streaming_completed`), capturing vital diagnostic metadata (`cryptic.file.size`, `cryptic.algorithm`, `cryptic.throughput_mb_s`).
 
 ---
