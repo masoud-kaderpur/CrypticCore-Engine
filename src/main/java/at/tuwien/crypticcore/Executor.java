@@ -1,14 +1,11 @@
 package at.tuwien.crypticcore;
 
-import static at.tuwien.crypticcore.core.domain.FormatSpecification.HEADER_LENGTH;
 
 import at.tuwien.crypticcore.core.domain.CipherAlgorithm;
 import at.tuwien.crypticcore.core.domain.Context;
 import at.tuwien.crypticcore.core.domain.EncryptionEngine;
 import at.tuwien.crypticcore.core.domain.HeaderCodec;
 import at.tuwien.crypticcore.core.domain.Validator;
-import at.tuwien.crypticcore.core.domain.exception.HeaderValidationException;
-import at.tuwien.crypticcore.core.domain.model.CrypticMode;
 import at.tuwien.crypticcore.core.engine.XorEncryptionEngine;
 import at.tuwien.crypticcore.core.engine.algorithm.XorCipher;
 import at.tuwien.crypticcore.infrastructure.io.ContextValidator;
@@ -38,11 +35,6 @@ public class Executor {
    */
   public static void execute(Context context) throws IOException {
     try {
-
-      if (context.mode() == CrypticMode.DECRYPTION && context.fileSize() < HEADER_LENGTH) {
-        throw new HeaderValidationException("the file is too small for crypticcore header.");
-      }
-
       EncryptionEngine processor = new XorEncryptionEngine(ALGORITHM, VALIDATOR, HANDLER, TRACER);
 
       processor.process(context);

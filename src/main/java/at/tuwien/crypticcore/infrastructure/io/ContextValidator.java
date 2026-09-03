@@ -1,9 +1,11 @@
 package at.tuwien.crypticcore.infrastructure.io;
 
+import static at.tuwien.crypticcore.core.domain.FormatSpecification.getHeaderLength;
 
 import at.tuwien.crypticcore.core.domain.Context;
 import at.tuwien.crypticcore.core.domain.Validator;
 import at.tuwien.crypticcore.core.domain.exception.ValidationException;
+import at.tuwien.crypticcore.core.domain.model.CrypticMode;
 import java.io.IOException;
 import java.nio.file.Files;
 
@@ -33,6 +35,12 @@ public class ContextValidator implements Validator {
 
     if (context.fileSize() <= 0) {
       throw new ValidationException("File size must be greater than 0");
+    }
+
+    if (context.mode() == CrypticMode.DECRYPTION && context.fileSize() < getHeaderLength()) {
+      throw new ValidationException(
+          "ciphertext file size (" + context.fileSize() + " bytes) is smaller than the required "
+              + "header (" + getHeaderLength() + " bytes)");
     }
   }
 }

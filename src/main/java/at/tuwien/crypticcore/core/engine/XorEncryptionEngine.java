@@ -1,6 +1,6 @@
 package at.tuwien.crypticcore.core.engine;
 
-import static at.tuwien.crypticcore.core.domain.FormatSpecification.HEADER_LENGTH;
+import static at.tuwien.crypticcore.core.domain.FormatSpecification.getHeaderLength;
 
 import at.tuwien.crypticcore.core.domain.CipherAlgorithm;
 import at.tuwien.crypticcore.core.domain.Context;
@@ -9,7 +9,6 @@ import at.tuwien.crypticcore.core.domain.HeaderCodec;
 import at.tuwien.crypticcore.core.domain.Validator;
 import at.tuwien.crypticcore.core.domain.exception.CrypticException;
 import at.tuwien.crypticcore.core.domain.exception.DataTruncationException;
-import at.tuwien.crypticcore.core.domain.exception.ValidationException;
 import at.tuwien.crypticcore.core.domain.model.CrypticMode;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
@@ -91,7 +90,7 @@ public class XorEncryptionEngine implements EncryptionEngine {
               + context.fileSize() + " bytes, processed: " + totalBytesProcessed);
         }
       } else {
-        long totalReadWithHeader = totalBytesProcessed + HEADER_LENGTH;
+        long totalReadWithHeader = totalBytesProcessed + getHeaderLength();
         if (totalReadWithHeader != context.fileSize()) {
           throw new DataTruncationException("Data truncation during decryption! Expected: "
               + context.fileSize() + " bytes, accounted: " + totalReadWithHeader);
