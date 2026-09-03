@@ -3,6 +3,7 @@ package at.tuwien.crypticcore;
 import at.tuwien.crypticcore.core.domain.Context;
 import at.tuwien.crypticcore.core.domain.model.CrypticMode;
 import at.tuwien.crypticcore.infrastructure.telemetry.OpenTelemetryConfig;
+import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -34,7 +35,13 @@ public class App {
     OpenTelemetrySdk otelSdk = OpenTelemetryConfig.init();
 
     try (otelSdk) {
-      Executor.execute(context);
+      String version = App.class.getPackage().getImplementationVersion();
+      Tracer tracer = otelSdk.getTracer(
+          "at.tuwien.crypticcore.core.engine",
+          version != null ? version : "dev"
+      );
+
+      Executor.execute(context, tracer);
     } catch (Exception e) {
       System.exit(1);
     }

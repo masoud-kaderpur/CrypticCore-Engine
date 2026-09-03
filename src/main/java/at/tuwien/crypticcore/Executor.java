@@ -1,6 +1,5 @@
 package at.tuwien.crypticcore;
 
-
 import at.tuwien.crypticcore.core.domain.CipherAlgorithm;
 import at.tuwien.crypticcore.core.domain.Context;
 import at.tuwien.crypticcore.core.domain.EncryptionEngine;
@@ -10,9 +9,7 @@ import at.tuwien.crypticcore.core.engine.XorEncryptionEngine;
 import at.tuwien.crypticcore.core.engine.algorithm.XorCipher;
 import at.tuwien.crypticcore.infrastructure.io.ContextValidator;
 import at.tuwien.crypticcore.infrastructure.io.HeaderHandler;
-import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.Tracer;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
@@ -25,18 +22,10 @@ public class Executor {
   private static final CipherAlgorithm ALGORITHM = new XorCipher();
   private static final Validator VALIDATOR = new ContextValidator();
   private static final HeaderCodec HANDLER = new HeaderHandler();
-  private static final Tracer TRACER = GlobalOpenTelemetry.getTracer(
-      "at.tuwien.crypticcore.core.engine", Executor.class.getPackage().getImplementationVersion());
 
-  /**
-   * this method executes the engine.
-   *
-   * @param context the given context.
-   */
-  public static void execute(Context context) throws IOException {
+  public static void execute(Context context, Tracer tracer) throws Exception {
     try {
-      EncryptionEngine processor = new XorEncryptionEngine(ALGORITHM, VALIDATOR, HANDLER, TRACER);
-
+      EncryptionEngine processor = new XorEncryptionEngine(ALGORITHM, VALIDATOR, HANDLER, tracer);
       processor.process(context);
 
       Files.move(
@@ -46,6 +35,7 @@ public class Executor {
 
     } catch (Exception e) {
       Files.deleteIfExists(context.tempOutputPath());
+      throw e;
     } finally {
       Arrays.fill(context.key(), (byte) 0);
     }
