@@ -14,7 +14,6 @@ public interface EncryptionEngine {
    * @param context the given context.
    *
    * @throws IOException if there is an exception throughout the process
-   * @throws ValidationException if the context is not valid
    */
-  void process(Context context) throws IOException, ValidationException;
+  void process(Context context) throws IOException;
 }

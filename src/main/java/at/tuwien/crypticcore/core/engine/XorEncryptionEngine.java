@@ -48,7 +48,7 @@ public class XorEncryptionEngine implements EncryptionEngine {
   }
 
   @Override
-  public void process(Context context) throws IOException, ValidationException {
+  public void process(Context context) throws IOException {
 
     Span span = tracer.spanBuilder(context.mode().name().toLowerCase() + "_file")
         .setAttribute("cryptic.file.size", context.fileSize())
