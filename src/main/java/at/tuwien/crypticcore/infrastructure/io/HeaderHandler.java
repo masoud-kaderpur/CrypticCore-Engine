@@ -26,7 +26,7 @@ public class HeaderHandler implements HeaderCodec {
     byte[] fileMagic = new byte[MAGIC.length];
 
     if (in.read(fileMagic) != MAGIC.length || !Arrays.equals(fileMagic, MAGIC)) {
-      throw new HeaderValidationException("incorrect crypticCore-engine data!");
+      throw new HeaderValidationException("incorrect crypticcore-engine data!");
     }
 
     int fileVersion = in.read();

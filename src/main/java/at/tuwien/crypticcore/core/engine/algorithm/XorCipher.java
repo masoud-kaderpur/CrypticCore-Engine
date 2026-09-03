@@ -4,7 +4,7 @@ import at.tuwien.crypticcore.core.domain.CipherAlgorithm;
 import java.util.Arrays;
 
 /**
- * High-performance involutory XOR cipher implementation using bulk array processing.
+ * xor cipher implementation using bulk array processing.
  */
 public class XorCipher implements CipherAlgorithm {
 
