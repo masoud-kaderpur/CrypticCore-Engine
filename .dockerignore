@@ -1,9 +1,32 @@
+# Build & dependency artifacts
 target/
+*.jar
+*.war
+
+# Version control & IDE
 .git/
+.gitignore
+.github/
 .idea/
 *.iml
-*.txt
+*.ipr
+*.iws
 
-# Enviroment Files
+# Test files & temporary I/O
+*.txt
+*.tmp
+*.cce
+data/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Documentation & Markdown
+*.md
+images/
+
+# Environment & Secrets
 .env
 .env.*
+!.env.example

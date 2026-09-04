@@ -1,16 +1,10 @@
-# Compiled class file
+# Java & JVM artifacts
 *.class
-
-# Log file
 *.log
+hs_err_pid*
+replay_pid*
 
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
+# Packaging
 *.jar
 *.war
 *.nar
@@ -19,11 +13,7 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
-
-# Maven
+# Maven build outputs
 target/
 pom.xml.tag
 pom.xml.releaseBackup
@@ -33,20 +23,26 @@ release.properties
 dependency-reduced-pom.xml
 build.log
 
-# IntelliJ IDEA
+# IntelliJ IDEA & VS Code
 .idea/
-*.iws
+out/
 *.iml
 *.ipr
-out/
+*.iws
+.vscode/
 
-# OS-specific
+# OS metadata
 .DS_Store
 Thumbs.db
 
-# Test Data
+# Dynamic test & engine outputs
+*.tmp
+*.cce
+data/in/
+data/out/
 *.txt
 
-# Enviroment Files
+# Environment & Secrets
 .env
 .env.*
+!.env.example
