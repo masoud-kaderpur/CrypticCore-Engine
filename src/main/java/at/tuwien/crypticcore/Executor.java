@@ -10,6 +10,7 @@ import at.tuwien.crypticcore.core.engine.algorithm.XorCipher;
 import at.tuwien.crypticcore.infrastructure.io.ContextValidator;
 import at.tuwien.crypticcore.infrastructure.io.HeaderHandler;
 import io.opentelemetry.api.trace.Tracer;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
@@ -34,7 +35,11 @@ public class Executor {
           StandardCopyOption.REPLACE_EXISTING);
 
     } catch (Exception e) {
-      Files.deleteIfExists(context.tempOutputPath());
+      try {
+        Files.deleteIfExists(context.tempOutputPath());
+      } catch (IOException ex) {
+        e.addSuppressed(ex);
+      }
       throw e;
     } finally {
       Arrays.fill(context.key(), (byte) 0);
