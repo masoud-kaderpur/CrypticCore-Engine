@@ -107,24 +107,18 @@ The engine streams traces and lifecycle metrics directly to Dynatrace via **OTLP
 ```bash
 # Dynatrace OTLP Configuration
 export OTEL_SERVICE_NAME="cryptic-core-engine"
-export OTEL_EXPORTER_OTLP_ENDPOINT="https://<TENANT_ID>[.live.dynatrace.com/api/v2/otlp](https://.live.dynatrace.com/api/v2/otlp)"
+export OTEL_EXPORTER_OTLP_ENDPOINT="https://<TENANT_ID>.live.dynatrace.com/api/v2/otlp"
 export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Api-Token <API_TOKEN>"
 export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
 ```
 
-> **Endpoint Note:** For Dynatrace SaaS/Apps environments, route OTLP traces directly to: https://<YOUR_TENANT_ID>.live.dynatrace.com/api/v2/otlp/v1/traces
-
-#### 2. Execution with Dynatrace Ingestion
+#### 2. Execution
 
 ```bash
-java -DOTEL_SERVICE_NAME="cryptic-core-engine" \
-     -DOTEL_EXPORTER_OTLP_ENDPOINT="https://<TENANT_ID>[.live.dynatrace.com/api/v2/otlp](https://.live.dynatrace.com/api/v2/otlp)" \
-     -DOTEL_EXPORTER_OTLP_HEADERS="Authorization=Api-Token <API_TOKEN>" \
-     -DOTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf" \
-     -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt output.cce PASSWORD
+java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt output.cce PASSWORD
 ```
 
-#### 3. Live Distributed 
+#### 3. Live Distributed Tracing 
 
 ![Dynatrace Distributed Tracing](/images/dynatrace_trace.jpg)
 > **Live Trace Verification in Dynatrace:**
