@@ -38,9 +38,11 @@ Thumbs.db
 # Dynamic test & engine outputs
 *.tmp
 *.cce
-data/in/
-data/out/
 *.txt
+data/in/*
+!data/in/.gitkeep
+data/out/*
+!data/out/.gitkeep
 
 # Environment & Secrets
 .env
