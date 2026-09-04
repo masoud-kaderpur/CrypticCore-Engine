@@ -70,7 +70,7 @@ public class XorEncryptionEngine implements EncryptionEngine {
       span.addEvent("inputs_verified");
 
       try (FileInputStream in = new FileInputStream(context.inputPath().toFile());
-          FileOutputStream out = new FileOutputStream(context.outputPath().toFile())) {
+          FileOutputStream out = new FileOutputStream(context.tempOutputPath().toFile())) {
 
         if (context.mode() == CrypticMode.ENCRYPTION) {
           headerCodec.writeHeader(out);

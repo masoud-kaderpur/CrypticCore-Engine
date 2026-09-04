@@ -9,9 +9,13 @@ import at.tuwien.crypticcore.core.engine.XorEncryptionEngine;
 import at.tuwien.crypticcore.core.engine.algorithm.XorCipher;
 import at.tuwien.crypticcore.infrastructure.io.ContextValidator;
 import at.tuwien.crypticcore.infrastructure.io.HeaderHandler;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 
@@ -25,10 +29,19 @@ public class Executor {
   private static final HeaderCodec HANDLER = new HeaderHandler();
 
   /**
-   * this class is the executer that can be called by the app.
+   * executes the encryption/decryption workflow.
    */
   public static void execute(Context context, Tracer tracer) throws Exception {
-    try {
+
+    Path fileName = context.inputPath().getFileName();
+    String safeFileName = (fileName != null) ? fileName.toString() : "root";
+
+    Span rootSpan = tracer.spanBuilder(context.mode().name().toLowerCase())
+        .setAttribute("file.name", safeFileName)
+        .setAttribute("file.size", context.fileSize())
+        .startSpan();
+
+    try (Scope scope = rootSpan.makeCurrent()) {
       EncryptionEngine processor = new XorEncryptionEngine(ALGORITHM, VALIDATOR, HANDLER, tracer);
       processor.process(context);
 
@@ -37,7 +50,12 @@ public class Executor {
           context.outputPath(),
           StandardCopyOption.REPLACE_EXISTING);
 
+      rootSpan.setStatus(StatusCode.OK);
     } catch (Exception e) {
+      rootSpan.recordException(e);
+      rootSpan.setAttribute("error.type", e.getClass().getName());
+      rootSpan.setStatus(StatusCode.ERROR, "execution failed: " + e.getClass().getSimpleName());
+
       try {
         Files.deleteIfExists(context.tempOutputPath());
       } catch (IOException ex) {
@@ -46,6 +64,7 @@ public class Executor {
       throw e;
     } finally {
       Arrays.fill(context.key(), (byte) 0);
+      rootSpan.end();
     }
   }
 }
