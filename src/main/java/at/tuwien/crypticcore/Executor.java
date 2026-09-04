@@ -24,6 +24,9 @@ public class Executor {
   private static final Validator VALIDATOR = new ContextValidator();
   private static final HeaderCodec HANDLER = new HeaderHandler();
 
+  /**
+   * this class is the executer that can be called by the app.
+   */
   public static void execute(Context context, Tracer tracer) throws Exception {
     try {
       EncryptionEngine processor = new XorEncryptionEngine(ALGORITHM, VALIDATOR, HANDLER, tracer);
