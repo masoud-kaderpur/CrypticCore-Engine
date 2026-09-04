@@ -102,19 +102,32 @@ observability platforms like **Dynatrace** or local tracing backends like **Jaeg
 
 The engine streams traces and lifecycle metrics directly to Dynatrace via **OTLP/HTTP (`http/protobuf`)**.
 
-#### 1. Configuration (`.env` or Environment Variables)
+#### 1. Configuration (`.env`)
+
+Copy `.env.example` to `.env` and configure your credentials:
 
 ```bash
-# Dynatrace OTLP Configuration
-export OTEL_SERVICE_NAME="cryptic-core-engine"
-export OTEL_EXPORTER_OTLP_ENDPOINT="https://<TENANT_ID>.live.dynatrace.com/api/v2/otlp"
-export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Api-Token <API_TOKEN>"
-export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
+cp .env.example .env
 ```
+
+Define your tenant endpoint and token in (`.env`)
+
+```bash
+OTEL_SERVICE_NAME=cryptic-core-engine
+OTEL_EXPORTER_OTLP_ENDPOINT=https://<TENANT_ID>.live.dynatrace.com/api/v2/otlp
+OTEL_EXPORTER_OTLP_HEADERS=Authorization=Api-Token <API_TOKEN>
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+```
+
 
 #### 2. Execution
 
+Load the environment variables securely into your current shell process without exposing them to system process tables or argument histories:
+
 ```bash
+set -a
+source .env
+set +a
 java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt output.cce PASSWORD
 ```
 
@@ -141,7 +154,7 @@ OTEL_SERVICE_NAME=cryptic-core \
 OTEL_TRACES_EXPORTER=otlp \
 OTEL_METRICS_EXPORTER=none \
 OTEL_LOGS_EXPORTER=none \
-java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt outputt.txt PASSWORD
+java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt output.cce PASSWORD
 ```
 
 #### 3. **Inspect Traces**
@@ -164,8 +177,18 @@ Navigate to http://localhost:16686 to explore full execution timelines, span eve
 java -jar target/CrypticCore-jar-with-dependencies.jar <ENCRYPTION|DECRYPTION> <input_file> <output_file> <secret_key>
 ```
 
-**Docker**
+**Docker (Local Stack with Jaeger Tracing)**
 
 ```bash
-docker compose run --rm engine ENCRYPTION /app/data/input.txt /app/data/output.cce PASSWORD
+# Place your input files in ./data/in
+cp input.txt data/in/
+
+# Run the container (output files will land in ./data/out)
+docker compose run --rm engine ENCRYPTION /app/data/in/input.txt /app/data/out/output.cce PASSWORD
+```
+
+**Docker (Dynatrace Production Run via `.env`)**
+
+```bash
+docker compose --env-file .env run --rm engine ENCRYPTION /app/data/in/input.txt /app/data/out/output.cce PASSWORD
 ```
