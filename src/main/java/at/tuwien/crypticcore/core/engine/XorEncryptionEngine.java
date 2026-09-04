@@ -16,6 +16,7 @@ import io.opentelemetry.api.trace.Tracer;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * this class represents the core xor engine implementation.
@@ -49,13 +50,15 @@ public class XorEncryptionEngine implements EncryptionEngine {
   @Override
   public void process(Context context) throws IOException {
 
+    Path fileName = context.inputPath().getFileName();
+
     Span span = tracer.spanBuilder(context.mode().name().toLowerCase() + "_file")
-        .setAttribute("cryptic.file.size", context.fileSize())
-        .setAttribute("cryptic.file.input", context.inputPath().getFileName().toString())
-        .setAttribute("cryptic.algorithm", algorithm.getName())
+        .setAttribute("file.size", context.fileSize())
+        .setAttribute("file.name", (fileName != null) ? fileName.toString() : "root")
+        .setAttribute("algorithm.name", algorithm.getName())
         .startSpan();
 
-    span.addEvent("streaming_started");
+    span.addEvent("engine_started");
 
     try {
       int bytesRead;
@@ -97,16 +100,18 @@ public class XorEncryptionEngine implements EncryptionEngine {
         }
       }
 
-      span.addEvent("streaming_completed");
+      span.addEvent("engine_closed");
       span.setStatus(StatusCode.OK);
 
     } catch (CrypticException | IOException e) {
       span.recordException(e);
-      span.setStatus(StatusCode.ERROR, e.getMessage());
+      span.setAttribute("error.type", e.getClass().getName());
+      span.setStatus(StatusCode.ERROR, "processing failed: " + e.getClass().getSimpleName());
       throw e;
     } catch (RuntimeException e) {
       span.recordException(e);
-      span.setStatus(StatusCode.ERROR, "Unexpected runtime error: " + e.getMessage());
+      span.setAttribute("error.type", e.getClass().getName());
+      span.setStatus(StatusCode.ERROR, "unexpected runtime error");
       throw e;
     } finally {
       span.end();
