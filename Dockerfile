@@ -8,7 +8,7 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 RUN mvn clean package -DskipTests -Dcheckstyle.skip=true
 
-FROM eclipse-temurin:21.0.6_7-jre-alpine@sha256:d5c3bf1712a7bf32185c9ca62df5a3c6be4cfc8be37e7a8e8062fa9cfaea7bc6
+FROM eclipse-temurin:21.0.6_7-jre-alpine
 WORKDIR /app
 
 COPY --from=builder /app/target/CrypticCore-jar-with-dependencies.jar engine.jar
