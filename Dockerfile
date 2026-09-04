@@ -13,7 +13,9 @@ WORKDIR /app
 
 COPY --from=builder /app/target/CrypticCore-jar-with-dependencies.jar engine.jar
 
-RUN addgroup -S enginegroup && adduser -S engineuser -G enginegroup
+RUN addgroup -g 1000 -S enginegroup && \
+    adduser -u 1000 -S engineuser -G enginegroup
+
 USER engineuser
 
 ENTRYPOINT ["java", "-jar", "engine.jar"]
