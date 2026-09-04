@@ -4,20 +4,19 @@ services:
     image: cryptic-core-engine:latest
     volumes:
       - .:/app/data
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     environment:
       - OTEL_SERVICE_NAME=cryptic-core
       - OTEL_TRACES_EXPORTER=otlp
       - OTEL_METRICS_EXPORTER=none
       - OTEL_LOGS_EXPORTER=none
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+    depends_on:
+      - jaeger
 
   jaeger:
-    image: jaegertracing/all-in-one:1.60
+    image: jaegertracing/jaeger:latest
     container_name: cc-jaeger
     ports:
       - "16686:16686"
       - "4317:4317"
       - "4318:4318"
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
