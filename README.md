@@ -38,7 +38,7 @@ The engine adheres strictly to **SOLID design principles** and **Clean Architect
 ### Key Architectural Highlights
 * **Single Responsibility (SRP):** Cryptographic transformations (`XorCipher`), I/O streaming (`XorEncryptionEngine`), file safety (`ContextValidator`), and header encoding (`HeaderHandler`) are strictly isolated.
 * **Dependency Inversion (DIP):** The core domain and engine rely solely on pure abstractions (`CipherAlgorithm, Validator, HeaderCodec and Tracer`). By completely eliminating hidden global lookups and service locators, the engine is entirely decoupled from infrastructure and fully testable in isolation. 
-* **Observability Integration:** Spans track the complete lifecycle (`inputs_verified` -> `header_written` -> `streaming_completed`), capturing vital diagnostic metadata (`cryptic.file.size`, `cryptic.algorithm`, `cryptic.throughput_mb_s`).
+* **Observability Integration:** Spans track the complete lifecycle (`engine_started`, `inputs_verified` -> `header_written` -> `engine_closed`), capturing vital diagnostic metadata (`file.size`, `file.name`, `algorithm.name`).
 
 ---
 
@@ -124,7 +124,7 @@ java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt outp
 > **Live Trace Verification in Dynatrace:**
 > * **Service Name:** `cryptic-core-engine`
 > * **Root Span:** `encryption_file` (Captured total streaming runtime: ~12.96s for 5 GB payload)
-> * **Lifecycle Milestones:** Span events track execution states (`inputs_verified` ➔ `header_written` ➔ `streaming_completed`) alongside real-time throughput metrics ($MB/s$).
+> * **Lifecycle Milestones:** Span events track execution states (`engine_started`, `inputs_verified` ➔ `header_written` ➔ `engine_closed`).
 
 ### Alternative: Local Development with Docker & Jaeger
 
