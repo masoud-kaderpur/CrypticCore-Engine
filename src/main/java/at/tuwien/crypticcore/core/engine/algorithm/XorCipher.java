@@ -1,7 +1,6 @@
 package at.tuwien.crypticcore.core.engine.algorithm;
 
 import at.tuwien.crypticcore.core.domain.CipherAlgorithm;
-import java.util.Arrays;
 
 /**
  * xor cipher implementation using bulk array processing.
@@ -23,16 +22,5 @@ public class XorCipher implements CipherAlgorithm {
   @Override
   public String getName() {
     return NAME;
-  }
-
-  /**
-   * Overwrites key material with zeroes to sanitize heap memory.
-   *
-   * @param key sensitive key material to wipe
-   */
-  public static void wipeMemory(byte[] key) {
-    if (key != null) {
-      Arrays.fill(key, (byte) 0);
-    }
   }
 }

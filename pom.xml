@@ -21,7 +21,6 @@
     <jackson.version>2.17.0</jackson.version>
     <janino.version>3.1.12</janino.version>
     <assertj.version>3.27.7</assertj.version>
-    <system-stubs.version>2.1.6</system-stubs.version>
   </properties>
 
   <dependencyManagement>
@@ -152,9 +151,9 @@
         <version>0.8.12</version>
         <configuration>
           <excludes>
-            <exclude>**/*Exception*</exclude>
-            <exclude>**/*Executor*</exclude>
-            <exclude>**/*App*</exclude>
+            <exclude>at/tuwien/crypticcore/App.class</exclude>
+            <exclude>at/tuwien/crypticcore/infrastructure/telemetry/OpenTelemetryConfig.class</exclude>
+            <exclude>at/tuwien/crypticcore/core/domain/exception/**</exclude>
           </excludes>
         </configuration>
         <executions>

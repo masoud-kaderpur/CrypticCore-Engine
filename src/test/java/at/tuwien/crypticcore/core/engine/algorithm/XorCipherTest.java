@@ -92,23 +92,4 @@ class XorCipherTest {
       assertThat(buffer).isEqualTo(original);
     }
   }
-
-  @Nested
-  @DisplayName("Static Memory Sanitation Tests")
-  class MemorySanitationTests {
-
-    @Test
-    @DisplayName("Should overwrite key array with zero-bytes using static wipeMemory")
-    void shouldZeroOutKeyMemory() {
-      byte[] key = "SensitivePassword123!".getBytes(StandardCharsets.UTF_8);
-      XorCipher.wipeMemory(key);
-      assertThat(key).containsOnly((byte) 0);
-    }
-
-    @Test
-    @DisplayName("Should handle null key gracefully in wipeMemory without throwing NPE")
-    void shouldHandleNullInWipeMemory() {
-      XorCipher.wipeMemory(null);
-    }
-  }
 }

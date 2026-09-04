@@ -8,8 +8,4 @@ public class HeaderValidationException extends CrypticException {
   public HeaderValidationException(String message) {
     super(message);
   }
-
-  public HeaderValidationException(String message, Throwable cause) {
-    super(message, cause);
-  }
 }
