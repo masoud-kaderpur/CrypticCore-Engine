@@ -1,195 +1,144 @@
 # CrypticCore Engine
 
-![Build Status](https://github.com/masoud-kaderpur/CrypticCore-Engine/actions/workflows/ci.yml/badge.svg)
-![Java Version](https://img.shields.io/badge/Java-21-blue)
-![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2F%20SOLID-orange)
-![Observability](https://img.shields.io/badge/Observability-OpenTelemetry%20%2F%20OTLP-yellow)
-![License](https://img.shields.io/badge/License-MIT-green)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED)
+![Build](https://github.com/masoud-kaderpur/CrypticCore-Engine/actions/workflows/ci.yml/badge.svg)
+![Java 21](https://img.shields.io/badge/Java-21-blue)
+![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
-**CrypticCore Engine** is a Java 21 streaming pipeline built to demonstrate **OpenTelemetry** tracing.
+**CrypticCore Engine** is a Java 21 streaming engine built to demonstrate **OpenTelemetry** tracing.
 
 > [!WARNING]
 > **Educational Showcase Only**  
 > The stream transformation uses a repeating-key XOR cipher. It provides **no cryptographic confidentiality or integrity**.
 
+---
+
+## Demo
 https://github.com/user-attachments/assets/94072560-118d-43fd-8377-e40e8d15c895
 
-## Executive Summary 
+---
 
-* **Low Memory Footprint ($O(1)$ Space Complexity):** Constant 8 KB heap allocation processes files of arbitrary size (tested up to 5 GB+) without Garbage Collection pressure.
-* **Observability First (OTLP Standard):** Native OpenTelemetry instrumentation with zero proprietary vendor lock-in. Instantly exports spans, metric attributes, and execution lifecycle events to **Dynatrace**, **Jaeger**, or **Datadog**.
-* **Engineered for High-Performance I/O:** Statistically benchmarked using **JMH (Java Microbenchmark Harness)** achieving up to **~740 MB/s** throughput on single-threaded execution.
-* **Production-Grade Infrastructure:** Containerized with multi-stage Alpine Docker builds, run as a non-root user, and configured for hybrid structured JSON logging.
+## Features
 
---- 
-
-## 1. Architecture & Design Principles
-
-The engine adheres strictly to **SOLID design principles** and **Clean Architecture**:
-
-* **`at.tuwien.crypticcore.core.domain`**: Domain models, interfaces (CipherAlgorithm, Validator, HeaderCodec), Context record and Custom Exception Hierarchy 
-* **`at.tuwien.crypticcore.core.engine`**: Stateless execution engine, streaming orchestration, and explicit telemetry consumption via injected abstractions
-* **`at.tuwien.crypticcore.infrastructure.io`**: Headerhandler (Magic Bytes), ContextValidator (Checks)
-* **`at.tuwien.crypticcore.infrastructure.telemetry`**: OpenTelemetry SDK bootstrap & OTLP exporter configuration
-* **`at.tuwien.crypticcore.App.java`**: CLI Entry Point and composition root
-* **`at.tuwien.crypticcore.Executor.java`**: Workflow orchestrator coordinating validations, execution, and atomic file moves.
-
-### Key Architectural Highlights
-* **Single Responsibility (SRP):** Cryptographic transformations (`XorCipher`), I/O streaming (`XorEncryptionEngine`), file safety (`ContextValidator`), and header encoding (`HeaderHandler`) are strictly isolated.
-* **Dependency Inversion (DIP):** The core domain and engine rely solely on pure abstractions (`CipherAlgorithm, Validator, HeaderCodec and Tracer`). By completely eliminating hidden global lookups and service locators, the engine is entirely decoupled from infrastructure and fully testable in isolation. 
-* **Observability Integration:** Spans track the complete lifecycle (`engine_started`, `inputs_verified` -> `header_written` -> `engine_closed`), capturing vital diagnostic metadata (`file.size`, `file.name`, `algorithm.name`).
+* Streams data via an 8 KB buffer to handle gigabyte files.
+* Exports spans and events over OTLP directly to Jaeger, Dynatrace, or any collector.
+* Reaches ~740 MB/s sustained throughput (validated via JMH).
+* Writes to temporary file (`.tmp`) before moving to destination paths.
 
 ---
 
-## 2. Theoretical Foundation & Optimization
+## Architecture
 
-### 2.1 The Transformation & Key Schedule
-The engine utilizes bitwise Exclusive OR (**XOR**) streaming. Since XOR is an involution ($P \oplus K \oplus K = P$), identical logic is used for encryption and decryption.
+The project decouples stream processing, I/O handling, and telemetry setup so components remain testable in isolation.
 
-The operation is defined as:
-
-$$P \oplus K = C$$
-$$C \oplus K = P$$
-
-### 2.2 Sign Extension & Bitmasking
-Java `byte` is signed ($-128$ to $127$). To prevent unintended sign extension during implicit 32-bit `int` promotion in bitwise operations, a bitmask of `0xFF` is enforced:
-$$\text{Result} = (P \land 0xFF) \oplus (K \land 0xFF)$$
-
----
-
-## 3. Performance & JMH Benchmarks
-
-The core streaming engine uses an **8 KB bulk byte-array buffer** matched to standard OS page sizes to maximize CPU L1/L2 cache efficiency and leverage JIT compiler optimizations.
-
-Microbenchmarked via **JMH (Java Microbenchmark Harness)** on Java 21 (Temurin):
-
-| Buffer Size              | Mode | Throughput (ops/s) | Approx. Throughput |
-|:-------------------------| :--- | :--- | :--- |
-| **1024 Bytes**           | Throughput | 728,205 ops/s | ~745 MB/s |
-| **8192 Bytes (Default)** | Throughput | **90,204 ops/s** | **~738.9 MB/s** |
-| **65536 Bytes**          | Throughput | 12,023 ops/s | ~787 MB/s |
-
-> *Note: By keeping heap allocations static ($O(1)$), GC pause times remain at virtually zero regardless of file volume.*
+```text
+src/main/java/
+├── core/
+│   ├── domain/         # Core domain models, interfaces and records.
+│   └── engine/         # Stream processing and tracer orchestration
+├── infrastructure/
+│   ├── io/             # File checks, magic byte parsing, and staged writing
+│   └── telemetry/      # OpenTelemetry SDK and OTLP exporters
+├── App.java            # CLI entry point
+└── Executor.java       # Pipeline coordinator
+```
 
 ---
 
-## 4. File Format Specification (`.cce`)
+## Transformation Logic
 
-All encrypted files generated by the engine contain a 4-byte metadata header to quickly identify 
-file format compatibility and version mismatch.
+The engine uses a repeating-key XOR stream cipher. Because XOR is an involution, encryption and decryption share the same logic.
 
-| Offset | Length | Description | Value (Hex / ASCII) |
+* **Operation:** `input_byte ^ key_byte`
+* **Byte handling:** Masked with `0xFF` during bitwise operations to avoid Java's signed byte expansion during `int` promotion.
+
+---
+
+## Benchmarks
+
+Stream throughput measured with JMH on Java 21.
+
+| Buffer Size  | Throughput | Approx. Speed |
+| :--- | :--- | :--- |
+| 1 KB | ~728k ops/s | ~745 MB/s |
+| **8 KB (Default)** | **~90k ops/s** | **~739 MB/s** |
+| 64 KB  | ~12k ops/s | ~787 MB/s |
+
+---
+
+## File Format (`.cce`)
+
+Encrypted files use a 4-byte header:
+
+| Offset | Length | Description | Value |
 | :--- | :--- | :--- | :--- |
-| `0x00` | 3 Bytes | Magic Number | `0x43 0x43 0x45` ("CCE") |
-| `0x03` | 1 Byte | Format Version | `0x01` |
----
-
-## 5. Reliability & System Resilience
-
-1. **Staged File Writes:** Writes to a staging file (`.tmp`) during stream processing before moving to the destination path to prevent partial file corruption during abrupt terminations.
-2. **Buffer Zeroing:** Internal operational byte buffers are cleared (`Arrays.fill()`) post-processing to minimize memory residency.
-3. **Fail-Fast Validation:** Validates file existence, non-emptiness, path equality, and basic disk parameters prior to opening stream handles.
+| `0x00` | 3 Bytes | Magic Bytes | `CCE` (`0x43 0x43 0x45`) |
+| `0x03` | 1 Byte | Version | `1` (`0x01`) |
 
 ---
 
-## 6. Observability Stack (OpenTelemetry & Dynatrace)
-
-CrypticCore Engine is instrumented with native **OpenTelemetry (OTLP)**. Telemetry data (spans, 
-span events, custom performance attributes) can be streamed vendor-neutrally to enterprise 
-observability platforms like **Dynatrace** or local tracing backends like **Jaeger**.
-
-### Dynatrace Integration
-
-The engine streams traces and lifecycle metrics directly to Dynatrace via **OTLP/HTTP (`http/protobuf`)**.
-
-#### 1. Configuration (`.env`)
-
-Copy `.env.example` to `.env` and configure your credentials:
-
+## Build
 ```bash
-cp .env.example .env
+mvn clean package
 ```
 
-Define your tenant endpoint and token in (`.env`)
+---
+
+## Tracing Setup
+
+The engine uses native OpenTelemetry (OTLP) to export spans, events, and file attributes directly to backends like Dynatrace or Jaeger.
+
+### Dynatrace Tracing
+
+Traces and execution events are sent over `http/protobuf`.
+
+#### 1. Configuration
 
 ```bash
-OTEL_SERVICE_NAME=cryptic-core-engine
-OTEL_EXPORTER_OTLP_ENDPOINT=https://<TENANT_ID>.live.dynatrace.com/api/v2/otlp
-OTEL_EXPORTER_OTLP_HEADERS=Authorization=Api-Token <API_TOKEN>
-OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+export OTEL_SERVICE_NAME=cryptic-core-engine
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://<TENANT_ID>.live.dynatrace.com/api/v2/otlp
+export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Api-Token <API_TOKEN>"
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 ```
-
 
 #### 2. Execution
 
-Load the environment variables securely into your current shell process without exposing them to system process tables or argument histories:
-
 ```bash
-set -a
-source .env
-set +a
 java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt output.cce PASSWORD
 ```
 
-#### 3. Live Distributed Tracing 
 
-![Dynatrace Distributed Tracing](/images/dynatrace_trace.jpg)
-> **Live Trace Verification in Dynatrace:**
-> * **Service Name:** `cryptic-core-engine`
-> * **Root Span:** `encryption_file` (Captured total streaming runtime: ~12.96s for 5 GB payload)
-> * **Lifecycle Milestones:** Span events track execution states (`engine_started`, `inputs_verified` ➔ `header_written` ➔ `engine_closed`).
+#### Example 
 
-### Alternative: Local Development with Docker & Jaeger
+![Dynatrace Tracing](/images/dynatrace_trace.jpg)
 
-#### 1. **Spin up the local Backend:**
+### Local Tracing
+
+#### 1. Start Jaeger
 ```bash
 docker compose up -d jaeger
 ```
 
-#### 2. **Execute with local collector**
+#### 2. Configuration
 ```bash
-mvn clean package
+export OTEL_SERVICE_NAME=cryptic-core
+export OTEL_TRACES_EXPORTER=otlp
+export OTEL_METRICS_EXPORTER=none
+export OTEL_LOGS_EXPORTER=none
+```
 
-OTEL_SERVICE_NAME=cryptic-core \
-OTEL_TRACES_EXPORTER=otlp \
-OTEL_METRICS_EXPORTER=none \
-OTEL_LOGS_EXPORTER=none \
+#### 3. Execution
+```bash
 java -jar target/CrypticCore-jar-with-dependencies.jar ENCRYPTION input.txt output.cce PASSWORD
 ```
 
-#### 3. **Inspect Traces**
-Navigate to http://localhost:16686 to explore full execution timelines, span events, and error diagnostics.
-
-## 7. Quality Assurance & CI/CD
-
-* **GitHub Actions Pipeline:** Automatic build, test, and style enforcement on every push/PR. 
-* **Code Style:** Google Java Style Guide via maven-checkstyle-plugin. 
-* **Code Coverage:** JaCoCo quality gate requiring >85% instruction coverage. 
-* **Testing Strategy:** Unit testing (JUnit 5, AssertJ), integration testing for stream integrity, resilience testing for corrupted headers and edge-case byte boundaries.
+#### 4. View Traces
+Navigate to http://localhost:16686 to view traces.
 
 ---
 
-## 8. Usage
+## Testing and CI
 
-**Native CLI**
-
-```bash
-java -jar target/CrypticCore-jar-with-dependencies.jar <ENCRYPTION|DECRYPTION> <input_file> <output_file> <secret_key>
-```
-
-**Docker (Local Stack with Jaeger Tracing)**
-
-```bash
-# Place your input files in ./data/in
-cp input.txt data/in/
-
-# Run the container (output files will land in ./data/out)
-docker compose run --rm engine ENCRYPTION /app/data/in/input.txt /app/data/out/output.cce PASSWORD
-```
-
-**Docker (Dynatrace Production Run via `.env`)**
-
-```bash
-docker compose --env-file .env run --rm engine ENCRYPTION /app/data/in/input.txt /app/data/out/output.cce PASSWORD
-```
+* GitHub Actions runs builds, tests, and style checks on every push and PR.
+* JaCoCo enforces >85% instruction coverage.
+* Checked against Google Java Style (`maven-checkstyle-plugin`).
+* JUnit 5 and AssertJ covering unit behavior, stream edge cases, and corrupted headers.
