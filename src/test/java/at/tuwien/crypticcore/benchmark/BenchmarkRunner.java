@@ -6,16 +6,14 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 /**
- * Entry point for executing JMH performance benchmarks programmatically.
- * <p>Configures and runs {@link XorEngineBenchmark} without requiring
- * external command-line runner plugins.</p>
+ * entry point for executing JMH performance benchmarks
  */
 public class BenchmarkRunner {
 
   /**
-   * Builds execution options and triggers the JMH benchmark harness.
+   * builds execution options and triggers the JMH benchmark harness.
    *
-   * @param args command-line arguments (unused)
+   * @param args command-line arguments
    * @throws RunnerException if the benchmark execution fails
    */
   public static void main(String[] args) throws RunnerException {

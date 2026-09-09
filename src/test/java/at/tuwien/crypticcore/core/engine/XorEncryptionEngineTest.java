@@ -48,7 +48,6 @@ class XorEncryptionEngineTest {
   @Test
   @DisplayName("Happy Path: Full round-trip encryption and decryption with multi-chunk buffer payload")
   void testEncryptionAndDecryptionMultiChunk() throws IOException {
-    // 10 KB payload to exercise while-loop buffer rollover (> 8192 bytes)
     byte[] rawData = new byte[10_000];
     for (int i = 0; i < rawData.length; i++) {
       rawData[i] = (byte) (i % 127);
@@ -61,7 +60,6 @@ class XorEncryptionEngineTest {
 
     Files.write(plainFile, rawData);
 
-    // 1. Encrypt
     Context encContext = new Context(
         CrypticMode.ENCRYPTION,
         plainFile,
@@ -75,7 +73,6 @@ class XorEncryptionEngineTest {
     assertThat(Files.exists(cipherTemp)).isTrue();
     assertThat(Files.size(cipherTemp)).isEqualTo(rawData.length + getHeaderLength());
 
-    // 2. Decrypt
     Context decContext = new Context(
         CrypticMode.DECRYPTION,
         cipherTemp,
@@ -105,7 +102,6 @@ class XorEncryptionEngineTest {
         100L
     );
 
-    // Path.of("") has null getFileName(), exists as current dir, but fails when opened as a file stream
     assertThatThrownBy(() -> engine.process(context))
         .isInstanceOf(IOException.class);
   }
@@ -119,11 +115,9 @@ class XorEncryptionEngineTest {
     Path tempOutput = tempDir.resolve("trunc_out.tmp");
     byte[] key = "key".getBytes(StandardCharsets.UTF_8);
 
-    // Provide an inflated expected fileSize so totalBytesProcessed != context.fileSize()
     long actualSize = Files.size(plainFile);
     long inflatedSize = actualSize + 50L;
 
-    // Use a stubbed validator so ContextValidator doesn't reject the input file
     Validator bypassValidator = ctx -> {};
     XorEncryptionEngine customEngine = new XorEncryptionEngine(algorithm, bypassValidator, headerCodec, tracer);
 
@@ -138,7 +132,7 @@ class XorEncryptionEngineTest {
 
     assertThatThrownBy(() -> customEngine.process(context))
         .isInstanceOf(DataTruncationException.class)
-        .hasMessageContaining("Data truncation during encryption!");
+        .hasMessageContaining("data truncation during encryption!");
   }
 
   @Test
@@ -159,7 +153,6 @@ class XorEncryptionEngineTest {
     );
     engine.process(encContext);
 
-    // Corrupt the expected size for decryption context
     long actualCipherSize = Files.size(cipherTemp);
     long corruptSize = actualCipherSize + 10L;
 
@@ -177,7 +170,7 @@ class XorEncryptionEngineTest {
 
     assertThatThrownBy(() -> customEngine.process(decContext))
         .isInstanceOf(DataTruncationException.class)
-        .hasMessageContaining("Data truncation during decryption!");
+        .hasMessageContaining("data truncation during decryption!");
   }
 
   @Test
@@ -188,9 +181,8 @@ class XorEncryptionEngineTest {
     Path tempOut = tempDir.resolve("runtime_out.tmp");
     byte[] key = "key".getBytes(StandardCharsets.UTF_8);
 
-    // Stub validator to throw an unexpected standard RuntimeException
     Validator faultyValidator = ctx -> {
-      throw new IllegalStateException("Simulated unchecked runtime failure");
+      throw new IllegalStateException("simulated unchecked runtime failure");
     };
 
     XorEncryptionEngine faultyEngine = new XorEncryptionEngine(algorithm, faultyValidator, headerCodec, tracer);
@@ -206,7 +198,7 @@ class XorEncryptionEngineTest {
 
     assertThatThrownBy(() -> faultyEngine.process(context))
         .isInstanceOf(IllegalStateException.class)
-        .hasMessage("Simulated unchecked runtime failure");
+        .hasMessage("simulated unchecked runtime failure");
   }
 
   @Test
@@ -216,7 +208,6 @@ class XorEncryptionEngineTest {
     Path tempOut = tempDir.resolve("io_out.tmp");
     byte[] key = "key".getBytes(StandardCharsets.UTF_8);
 
-    // Bypass ContextValidator so the engine reaches new FileInputStream(...)
     Validator bypassValidator = ctx -> {};
     XorEncryptionEngine ioEngine = new XorEncryptionEngine(algorithm, bypassValidator, headerCodec, tracer);
 

@@ -42,7 +42,7 @@ class CrypticModeTest {
     void shouldThrowExceptionOnNullInput() {
       assertThatThrownBy(() -> CrypticMode.fromString(null))
           .isInstanceOf(IllegalArgumentException.class)
-          .hasMessage("Mode input text cannot be null");
+          .hasMessage("mode input text cannot be null");
     }
 
     @ParameterizedTest
@@ -51,7 +51,7 @@ class CrypticModeTest {
     void shouldThrowExceptionOnUnknownInput(String input) {
       assertThatThrownBy(() -> CrypticMode.fromString(input))
           .isInstanceOf(IllegalArgumentException.class)
-          .hasMessageContaining("Unknown mode: " + input);
+          .hasMessageContaining("unknown mode: " + input);
     }
   }
 }

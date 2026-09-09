@@ -89,13 +89,13 @@ public class XorEncryptionEngine implements EncryptionEngine {
 
       if (context.mode() == CrypticMode.ENCRYPTION) {
         if (totalBytesProcessed != context.fileSize()) {
-          throw new DataTruncationException("Data truncation during encryption! Expected: "
+          throw new DataTruncationException("data truncation during encryption! expected: "
               + context.fileSize() + " bytes, processed: " + totalBytesProcessed);
         }
       } else {
         long totalReadWithHeader = totalBytesProcessed + getHeaderLength();
         if (totalReadWithHeader != context.fileSize()) {
-          throw new DataTruncationException("Data truncation during decryption! Expected: "
+          throw new DataTruncationException("data truncation during decryption! Expected: "
               + context.fileSize() + " bytes, accounted: " + totalReadWithHeader);
         }
       }

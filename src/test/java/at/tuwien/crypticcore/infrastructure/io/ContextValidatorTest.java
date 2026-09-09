@@ -159,7 +159,7 @@ class ContextValidatorTest {
 
     assertThatThrownBy(() -> validator.validate(context))
         .isInstanceOf(ValidationException.class)
-        .hasMessage("Key must not be null or empty");
+        .hasMessage("key must not be null or empty");
   }
 
   @Test
@@ -176,7 +176,7 @@ class ContextValidatorTest {
 
     assertThatThrownBy(() -> validator.validate(context))
         .isInstanceOf(ValidationException.class)
-        .hasMessage("Key must not be null or empty");
+        .hasMessage("key must not be null or empty");
   }
 
   @Test
@@ -193,7 +193,7 @@ class ContextValidatorTest {
 
     assertThatThrownBy(() -> validator.validate(context))
         .isInstanceOf(ValidationException.class)
-        .hasMessage("File size must be greater than 0");
+        .hasMessage("file size must be greater than 0");
   }
 
   @Test
@@ -210,7 +210,7 @@ class ContextValidatorTest {
 
     assertThatThrownBy(() -> validator.validate(context))
         .isInstanceOf(ValidationException.class)
-        .hasMessage("File size must be greater than 0");
+        .hasMessage("file size must be greater than 0");
   }
 
   @Test

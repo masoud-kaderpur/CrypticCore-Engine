@@ -12,7 +12,6 @@ public interface Validator {
    * this method checks if the given context is valid.
    *
    * @param context the context you want to validate
-   *
    * @throws ValidationException if the given context is not valid
    */
   void validate(Context context) throws ValidationException, IOException;

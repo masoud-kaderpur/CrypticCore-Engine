@@ -20,8 +20,6 @@ import org.openjdk.jmh.annotations.Warmup;
 
 /**
  * JMH microbenchmark suite measuring throughput performance for {@link XorCipher} operations.
- * <p>Compares optimized array-level transformations against naive single-byte loop implementations
- * across varying buffer sizes.</p>
  */
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
@@ -36,13 +34,13 @@ public class XorEngineBenchmark {
   private byte[] dataBuffer;
 
   /**
-   * Buffer sizes in bytes tested during execution (1 KB, 8 KB, 64 KB).
+   * buffer sizes in bytes tested during execution (1 KB, 8 KB, 64 KB).
    */
   @Param({"1024", "8192", "65536"})
   private int bufferSize;
 
   /**
-   * Prepares the cipher algorithm, key, and pseudo-random test data prior to benchmark execution.
+   * prepares the cipher algorithm, key, and pseudo-random test data prior to benchmark execution.
    */
   @Setup(Level.Trial)
   public void setup() {
@@ -54,7 +52,7 @@ public class XorEngineBenchmark {
   }
 
   /**
-   * Benchmarks optimized stream/array-level XOR transformation provided by {@link XorCipher}.
+   * benchmarks optimized stream/array-level XOR transformation provided by {@link XorCipher}.
    *
    * @return the transformed data buffer
    */
@@ -65,7 +63,7 @@ public class XorEngineBenchmark {
   }
 
   /**
-   * Benchmarks a naive single-byte loop XOR transformation as a performance baseline.
+   * benchmarks a naive single-byte loop XOR transformation as a performance baseline.
    *
    * @return the transformed data buffer
    */

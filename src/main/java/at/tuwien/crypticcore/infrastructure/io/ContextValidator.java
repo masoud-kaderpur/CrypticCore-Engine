@@ -30,11 +30,11 @@ public class ContextValidator implements Validator {
     }
 
     if (context.key() == null || context.key().length == 0) {
-      throw new ValidationException("Key must not be null or empty");
+      throw new ValidationException("key must not be null or empty");
     }
 
     if (context.fileSize() <= 0) {
-      throw new ValidationException("File size must be greater than 0");
+      throw new ValidationException("file size must be greater than 0");
     }
 
     if (context.mode() == CrypticMode.DECRYPTION && context.fileSize() < getHeaderLength()) {

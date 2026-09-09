@@ -1,6 +1,5 @@
 package at.tuwien.crypticcore.core.domain;
 
-import at.tuwien.crypticcore.core.domain.exception.ValidationException;
 import java.io.IOException;
 
 /**
@@ -12,7 +11,6 @@ public interface EncryptionEngine {
    * executes the engine.
    *
    * @param context the given context.
-   *
    * @throws IOException if there is an exception throughout the process
    */
   void process(Context context) throws IOException;

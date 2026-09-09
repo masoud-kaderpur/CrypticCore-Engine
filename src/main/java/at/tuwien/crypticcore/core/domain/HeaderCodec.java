@@ -14,7 +14,6 @@ public interface HeaderCodec {
    * this method is responsible for writing the header.
    *
    * @param out the output, where to write to.
-   *
    * @throws IOException if there is an exception during the streaming process.
    */
   void writeHeader(OutputStream out) throws IOException;
@@ -23,9 +22,7 @@ public interface HeaderCodec {
    * this method is responsible for validating the header.
    *
    * @param in the input, where to read from.
-   *
    * @throws IOException if there is an exception during the streaming process.
-   *
    * @throws HeaderValidationException if the header is not valid
    */
   void validateHeader(InputStream in) throws IOException, HeaderValidationException;

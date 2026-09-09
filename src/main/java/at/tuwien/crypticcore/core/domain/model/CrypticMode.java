@@ -1,25 +1,13 @@
 package at.tuwien.crypticcore.core.domain.model;
 
-import at.tuwien.crypticcore.core.domain.EncryptionEngine;
 import java.util.Arrays;
 
 /**
- * Defines the operational state of a {@link EncryptionEngine}.
- * <p>This enumeration determines whether the processor should prepend
- * format headers (Encryption) or validate existing headers (Decryption) during the
- * transformation process.</p>
+ * this enum defines the state of a process.
  */
 public enum CrypticMode {
-  /**
-   * Specifies that the input data should be transformed and prefixed with the CrypticCore
-   * metadata header.
-   */
-  ENCRYPTION("encryption", "encrypt"),
 
-  /**
-   * Specifies that the input data should be validated against the CrypticCore header before
-   * attempting reversal transformation.
-   */
+  ENCRYPTION("encryption", "encrypt"),
   DECRYPTION("decryption", "decrypt");
 
   private final String[] aliases;
@@ -29,19 +17,16 @@ public enum CrypticMode {
   }
 
   /**
-   * Parses a string input into a valid {@code CrypticMode}, supporting both standard enum names
-   * and common action verbs.
-   * <p>Matching is case-insensitive. Supported aliases include "encrypt"
-   * for {@code ENCRYPTION} and "decrypt" for {@code DECRYPTION}.</p>
+   * this method parses a string input into a valid {@code CrypticMode}.
    *
-   * @param text the raw string input (e.g., from command line arguments)
-   * @return the corresponding {@code CrypticMode}
+   * @param text the raw string input.
+   * @return the {@code CrypticMode}
    * @throws IllegalArgumentException if the text does not match any known mode or alias
    */
   public static CrypticMode fromString(String text) {
 
     if (text == null) {
-      throw new IllegalArgumentException("Mode input text cannot be null");
+      throw new IllegalArgumentException("mode input text cannot be null");
     }
 
     String cleanText = text.trim().toLowerCase();
@@ -50,6 +35,6 @@ public enum CrypticMode {
         .filter(mode -> mode.name().toLowerCase().equals(cleanText)
             || Arrays.asList(mode.aliases).contains(cleanText))
         .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Unknown mode: " + text));
+        .orElseThrow(() -> new IllegalArgumentException("unknown mode: " + text));
   }
 }

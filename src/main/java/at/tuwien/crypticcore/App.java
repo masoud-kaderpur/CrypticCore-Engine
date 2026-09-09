@@ -15,7 +15,7 @@ import java.nio.file.Path;
 public class App {
 
   private static final String USAGE =
-      "Usage: java -jar CrypticCore.jar <ENCRYPTION|DECRYPTION> <input_file> <output_file> <key>";
+      "usage: java -jar CrypticCore.jar <ENCRYPTION|DECRYPTION> <input_file> <output_file> <key>";
 
   /**
    * parses arguments and dispatches execution to the Executor.
