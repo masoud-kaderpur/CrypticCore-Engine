@@ -13,8 +13,7 @@
 > **Educational Showcase Only**  
 > The stream transformation uses a repeating-key XOR cipher. It provides **no cryptographic confidentiality or integrity**.
 
-
----
+https://github.com/user-attachments/assets/94072560-118d-43fd-8377-e40e8d15c895
 
 ## Executive Summary 
 
