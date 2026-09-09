@@ -46,7 +46,15 @@ public class App {
             version != null ? version : "dev"
         );
 
+        String verb = mode == CrypticMode.ENCRYPTION ? "Encrypting" : "Decrypting";
+        System.out.println(verb + " " + args[1] + "...");
+
+        long startTime = System.currentTimeMillis();
         Executor.execute(context, tracer);
+        long elapsed = System.currentTimeMillis() - startTime;
+
+        System.out.println("Done in " + elapsed + "ms → " + args[2] + " written");
+        System.out.println("Trace exported: cryptic-core");
       }
     } catch (Exception e) {
       System.err.println("Execution failed: " + e.getMessage());
